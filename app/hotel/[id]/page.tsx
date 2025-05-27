@@ -1,17 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Star,
   MapPin,
@@ -25,10 +35,10 @@ import {
   Share,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { format } from "date-fns"
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { format } from "date-fns";
 
 // Mock hotel data
 const hotelData = {
@@ -37,7 +47,7 @@ const hotelData = {
   location: "University Town, Peshawar",
   price: 15000,
   rating: 4.8,
-  reviews: 324,
+  feedbacks: 324,
   images: [
     "/placeholder.svg?height=400&width=600",
     "/placeholder.svg?height=400&width=600",
@@ -45,7 +55,15 @@ const hotelData = {
     "/placeholder.svg?height=400&width=600",
     "/placeholder.svg?height=400&width=600",
   ],
-  amenities: ["Wifi", "Parking", "Restaurant", "Pool", "Spa", "Gym", "Room Service"],
+  amenities: [
+    "Wifi",
+    "Parking",
+    "Restaurant",
+    "Pool",
+    "Spa",
+    "Gym",
+    "Room Service",
+  ],
   type: "Luxury Hotel",
   description:
     "Experience luxury at its finest with world-class amenities and exceptional service. Located in the heart of University Town, Pearl Continental Peshawar offers elegant accommodations with modern facilities and traditional Pakistani hospitality.",
@@ -61,24 +79,27 @@ const hotelData = {
       name: "Ahmed Khan",
       rating: 5,
       date: "2024-01-15",
-      comment: "Excellent service and beautiful rooms. The staff was very helpful and the location is perfect.",
+      comment:
+        "Excellent service and beautiful rooms. The staff was very helpful and the location is perfect.",
     },
     {
       id: 2,
       name: "Sarah Ali",
       rating: 4,
       date: "2024-01-10",
-      comment: "Great hotel with good amenities. The breakfast was delicious and the pool area is lovely.",
+      comment:
+        "Great hotel with good amenities. The breakfast was delicious and the pool area is lovely.",
     },
     {
       id: 3,
       name: "Muhammad Hassan",
       rating: 5,
       date: "2024-01-05",
-      comment: "Outstanding experience! Will definitely stay here again. Highly recommended.",
+      comment:
+        "Outstanding experience! Will definitely stay here again. Highly recommended.",
     },
   ],
-}
+};
 
 const amenityIcons = {
   Wifi: Wifi,
@@ -88,37 +109,43 @@ const amenityIcons = {
   Spa: Star,
   Gym: Users,
   "Room Service": Coffee,
-}
+};
 
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.6, ease: "easeOut" },
-}
+};
 
 export default function HotelDetailPage() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [checkIn, setCheckIn] = useState<Date>()
-  const [checkOut, setCheckOut] = useState<Date>()
-  const [guests, setGuests] = useState("2")
-  const [selectedRoom, setSelectedRoom] = useState("")
-  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [checkIn, setCheckIn] = useState<Date>();
+  const [checkOut, setCheckOut] = useState<Date>();
+  const [guests, setGuests] = useState("2");
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const [showBookingForm, setShowBookingForm] = useState(false);
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev === hotelData.images.length - 1 ? 0 : prev + 1))
-  }
+    setCurrentImageIndex((prev) =>
+      prev === hotelData.images.length - 1 ? 0 : prev + 1
+    );
+  };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? hotelData.images.length - 1 : prev - 1))
-  }
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? hotelData.images.length - 1 : prev - 1
+    );
+  };
 
   const calculateTotal = () => {
-    if (!checkIn || !checkOut || !selectedRoom) return 0
+    if (!checkIn || !checkOut || !selectedRoom) return 0;
 
-    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))
-    const room = hotelData.rooms.find((r) => r.type === selectedRoom)
-    return nights * (room?.price || 0)
-  }
+    const nights = Math.ceil(
+      (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const room = hotelData.rooms.find((r) => r.type === selectedRoom);
+    return nights * (room?.price || 0);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,13 +162,22 @@ export default function HotelDetailPage() {
               PeshawarStays
             </Link>
             <div className="hidden md:flex items-center space-x-6">
-              <Link href="/hotels" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/hotels"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Browse Hotels
               </Link>
-              <Link href="/become-host" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/become-host"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 Become a Host
               </Link>
-              <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="/about"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 About
               </Link>
             </div>
@@ -184,7 +220,7 @@ export default function HotelDetailPage() {
                 <div className="flex items-center">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
                   <span className="font-medium">{hotelData.rating}</span>
-                  <span className="ml-1">({hotelData.reviews.length} reviews)</span>
+                  <span className="ml-1">({hotelData.feedbacks} reviews)</span>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
@@ -193,13 +229,19 @@ export default function HotelDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button variant="outline" size="sm">
                   <Share className="h-4 w-4 mr-2" />
                   Share
                 </Button>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button variant="outline" size="sm">
                   <Heart className="h-4 w-4 mr-2" />
                   Save
@@ -221,7 +263,9 @@ export default function HotelDetailPage() {
             >
               <div className="relative h-96 rounded-lg overflow-hidden shadow-lg">
                 <Image
-                  src={hotelData.images[currentImageIndex] || "/placeholder.svg"}
+                  src={
+                    hotelData.images[currentImageIndex] || "/placeholder.svg"
+                  }
                   alt={`${hotelData.name} - Image ${currentImageIndex + 1}`}
                   fill
                   className="object-cover"
@@ -258,17 +302,28 @@ export default function HotelDetailPage() {
             </motion.div>
 
             {/* Description */}
-            <motion.div {...fadeInUp} transition={{ delay: 0.6 }} className="mb-8">
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 0.6 }}
+              className="mb-8"
+            >
               <h2 className="text-2xl font-bold mb-4">About this hotel</h2>
-              <p className="text-muted-foreground leading-relaxed">{hotelData.description}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {hotelData.description}
+              </p>
             </motion.div>
 
             {/* Amenities */}
-            <motion.div {...fadeInUp} transition={{ delay: 0.8 }} className="mb-8">
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 0.8 }}
+              className="mb-8"
+            >
               <h2 className="text-2xl font-bold mb-4">Amenities</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {hotelData.amenities.map((amenity, index) => {
-                  const Icon = amenityIcons[amenity as keyof typeof amenityIcons]
+                  const Icon =
+                    amenityIcons[amenity as keyof typeof amenityIcons];
                   return (
                     <motion.div
                       key={amenity}
@@ -281,13 +336,17 @@ export default function HotelDetailPage() {
                       {Icon && <Icon className="h-5 w-5 text-primary" />}
                       <span>{amenity}</span>
                     </motion.div>
-                  )
+                  );
                 })}
               </div>
             </motion.div>
 
             {/* Room Types */}
-            <motion.div {...fadeInUp} transition={{ delay: 1.0 }} className="mb-8">
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 1.0 }}
+              className="mb-8"
+            >
               <h2 className="text-2xl font-bold mb-4">Room Types</h2>
               <div className="space-y-4">
                 {hotelData.rooms.map((room, index) => (
@@ -305,12 +364,17 @@ export default function HotelDetailPage() {
                           <div>
                             <h3 className="font-semibold">{room.type}</h3>
                             <p className="text-sm text-muted-foreground">
-                              Up to {room.capacity} guests • {room.available} rooms available
+                              Up to {room.capacity} guests • {room.available}{" "}
+                              rooms available
                             </p>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold">PKR {room.price.toLocaleString()}</div>
-                            <div className="text-sm text-muted-foreground">per night</div>
+                            <div className="text-lg font-bold">
+                              PKR {room.price.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              per night
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -343,7 +407,9 @@ export default function HotelDetailPage() {
                                 <Star
                                   key={i}
                                   className={`h-4 w-4 ${
-                                    i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                    i < review.rating
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-gray-300"
                                   }`}
                                 />
                               ))}
@@ -353,7 +419,9 @@ export default function HotelDetailPage() {
                             {format(new Date(review.date), "MMM dd, yyyy")}
                           </span>
                         </div>
-                        <p className="text-muted-foreground">{review.comment}</p>
+                        <p className="text-muted-foreground">
+                          {review.comment}
+                        </p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -373,7 +441,9 @@ export default function HotelDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Book Your Stay</span>
-                    <Badge className="bg-luxury-gold text-primary">{hotelData.type}</Badge>
+                    <Badge className="bg-luxury-gold text-primary">
+                      {hotelData.type}
+                    </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -386,9 +456,14 @@ export default function HotelDetailPage() {
                           <Popover>
                             <PopoverTrigger asChild>
                               <motion.div whileHover={{ scale: 1.02 }}>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start text-left font-normal"
+                                >
                                   <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {checkIn ? format(checkIn, "MMM dd") : "Select"}
+                                  {checkIn
+                                    ? format(checkIn, "MMM dd")
+                                    : "Select"}
                                 </Button>
                               </motion.div>
                             </PopoverTrigger>
@@ -408,9 +483,14 @@ export default function HotelDetailPage() {
                           <Popover>
                             <PopoverTrigger asChild>
                               <motion.div whileHover={{ scale: 1.02 }}>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start text-left font-normal"
+                                >
                                   <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {checkOut ? format(checkOut, "MMM dd") : "Select"}
+                                  {checkOut
+                                    ? format(checkOut, "MMM dd")
+                                    : "Select"}
                                 </Button>
                               </motion.div>
                             </PopoverTrigger>
@@ -420,7 +500,9 @@ export default function HotelDetailPage() {
                                 selected={checkOut}
                                 onSelect={setCheckOut}
                                 disablePastDates={true}
-                                disabled={checkIn ? { before: checkIn } : undefined}
+                                disabled={
+                                  checkIn ? { before: checkIn } : undefined
+                                }
                                 initialFocus
                               />
                             </PopoverContent>
@@ -446,7 +528,10 @@ export default function HotelDetailPage() {
 
                       <div>
                         <Label htmlFor="room">Room Type</Label>
-                        <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                        <Select
+                          value={selectedRoom}
+                          onValueChange={setSelectedRoom}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select room type" />
                           </SelectTrigger>
@@ -468,15 +553,24 @@ export default function HotelDetailPage() {
                         >
                           <div className="flex justify-between items-center mb-2">
                             <span>Total</span>
-                            <span className="text-lg font-bold">PKR {calculateTotal().toLocaleString()}</span>
+                            <span className="text-lg font-bold">
+                              PKR {calculateTotal().toLocaleString()}
+                            </span>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))} nights
+                            {Math.ceil(
+                              (checkOut.getTime() - checkIn.getTime()) /
+                                (1000 * 60 * 60 * 24)
+                            )}{" "}
+                            nights
                           </p>
                         </motion.div>
                       )}
 
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
                         <Button
                           className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
                           size="lg"
@@ -490,22 +584,43 @@ export default function HotelDetailPage() {
                   ) : (
                     <>
                       {/* Enhanced Booking Form */}
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-4"
+                      >
                         <div>
                           <Label htmlFor="name">Full Name *</Label>
-                          <Input id="name" placeholder="Enter your full name" required />
+                          <Input
+                            id="name"
+                            placeholder="Enter your full name"
+                            required
+                          />
                         </div>
                         <div>
                           <Label htmlFor="email">Email Address *</Label>
-                          <Input id="email" type="email" placeholder="Enter your email" required />
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="Enter your email"
+                            required
+                          />
                         </div>
                         <div>
                           <Label htmlFor="phone">Phone Number *</Label>
-                          <Input id="phone" placeholder="+92 300 1234567" required />
+                          <Input
+                            id="phone"
+                            placeholder="+92 300 1234567"
+                            required
+                          />
                         </div>
                         <div>
                           <Label htmlFor="requests">Special Requests</Label>
-                          <Textarea id="requests" placeholder="Any special requests or requirements" rows={3} />
+                          <Textarea
+                            id="requests"
+                            placeholder="Any special requests or requirements"
+                            rows={3}
+                          />
                         </div>
 
                         <Separator />
@@ -514,49 +629,96 @@ export default function HotelDetailPage() {
                           <div className="flex justify-between">
                             <span>Room: {selectedRoom}</span>
                             <span>
-                              PKR {hotelData.rooms.find((r) => r.type === selectedRoom)?.price.toLocaleString()}/night
+                              PKR{" "}
+                              {hotelData.rooms
+                                .find((r) => r.type === selectedRoom)
+                                ?.price.toLocaleString()}
+                              /night
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>
-                              Dates: {checkIn && format(checkIn, "MMM dd")} - {checkOut && format(checkOut, "MMM dd")}
+                              Dates: {checkIn && format(checkIn, "MMM dd")} -{" "}
+                              {checkOut && format(checkOut, "MMM dd")}
                             </span>
                             <span>
-                              {Math.ceil((checkOut!.getTime() - checkIn!.getTime()) / (1000 * 60 * 60 * 24))} nights
+                              {Math.ceil(
+                                (checkOut!.getTime() - checkIn!.getTime()) /
+                                  (1000 * 60 * 60 * 24)
+                              )}{" "}
+                              nights
                             </span>
                           </div>
                           <div className="flex justify-between text-sm text-muted-foreground">
                             <span>Service Fee</span>
-                            <span>PKR {Math.round(calculateTotal() * 0.05).toLocaleString()}</span>
+                            <span>
+                              PKR{" "}
+                              {Math.round(
+                                calculateTotal() * 0.05
+                              ).toLocaleString()}
+                            </span>
                           </div>
                           <div className="flex justify-between font-bold text-lg border-t pt-2">
                             <span>Total Amount</span>
-                            <span>PKR {(calculateTotal() + Math.round(calculateTotal() * 0.05)).toLocaleString()}</span>
+                            <span>
+                              PKR{" "}
+                              {(
+                                calculateTotal() +
+                                Math.round(calculateTotal() * 0.05)
+                              ).toLocaleString()}
+                            </span>
                           </div>
                         </div>
 
                         <div className="flex gap-2">
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                            <Button variant="outline" className="flex-1" onClick={() => setShowBookingForm(false)}>
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => setShowBookingForm(false)}
+                            >
                               Back
                             </Button>
                           </motion.div>
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
                             <Button
                               className="flex-1 bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
                               onClick={() => {
                                 // Validate form
-                                const name = (document.getElementById("name") as HTMLInputElement)?.value
-                                const email = (document.getElementById("email") as HTMLInputElement)?.value
-                                const phone = (document.getElementById("phone") as HTMLInputElement)?.value
+                                const name = (
+                                  document.getElementById(
+                                    "name"
+                                  ) as HTMLInputElement
+                                )?.value;
+                                const email = (
+                                  document.getElementById(
+                                    "email"
+                                  ) as HTMLInputElement
+                                )?.value;
+                                const phone = (
+                                  document.getElementById(
+                                    "phone"
+                                  ) as HTMLInputElement
+                                )?.value;
 
                                 if (!name || !email || !phone) {
-                                  alert("Please fill in all required fields")
-                                  return
+                                  alert("Please fill in all required fields");
+                                  return;
                                 }
 
                                 // Redirect to booking confirmation
-                                window.location.href = `/booking/confirm?hotel=${hotelData.id}&room=${selectedRoom}&checkin=${checkIn?.toISOString()}&checkout=${checkOut?.toISOString()}&guests=${guests}&total=${calculateTotal() + Math.round(calculateTotal() * 0.05)}`
+                                window.location.href = `/booking/confirm?hotel=${
+                                  hotelData.id
+                                }&room=${selectedRoom}&checkin=${checkIn?.toISOString()}&checkout=${checkOut?.toISOString()}&guests=${guests}&total=${
+                                  calculateTotal() +
+                                  Math.round(calculateTotal() * 0.05)
+                                }`;
                               }}
                             >
                               Confirm Booking
@@ -573,5 +735,5 @@ export default function HotelDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

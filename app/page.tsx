@@ -288,6 +288,7 @@ export default function HomePage() {
                         placeholder="Where in Peshawar?"
                         className="pl-12 h-14 text-lg border-2 focus:border-luxury-gold transition-colors"
                         defaultValue="Peshawar, Pakistan"
+                        disabled={true}
                       />
                     </motion.div>
 
@@ -313,6 +314,7 @@ export default function HomePage() {
                             selected={checkIn}
                             onSelect={setCheckIn}
                             disablePastDates={true}
+                            numberOfMonths={1}
                             initialFocus
                           />
                         </PopoverContent>
@@ -342,6 +344,7 @@ export default function HomePage() {
                             onSelect={setCheckOut}
                             disablePastDates={true}
                             disabled={checkIn ? { before: checkIn } : undefined}
+                            numberOfMonths={1}
                             initialFocus
                           />
                         </PopoverContent>
