@@ -1,29 +1,15 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Calendar, Download, Home } from "lucide-react"
-import Link from "next/link"
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, Calendar, Download, Home } from "lucide-react";
+import Link from "next/link";
 
 export default function BookingSuccessPage() {
   return (
     <div className="min-h-screen bg-luxury-cream">
-      {/* Navigation */}
-      <nav className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary">
-              PeshawarStays
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Badge className="bg-green-100 text-green-800">Booking Confirmed</Badge>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto text-center">
           <motion.div
@@ -37,14 +23,25 @@ export default function BookingSuccessPage() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <h1 className="text-4xl font-bold text-primary mb-4">Booking Confirmed!</h1>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h1 className="text-4xl font-bold text-primary mb-4">
+              Booking Confirmed!
+            </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Your reservation has been successfully confirmed. We've sent a confirmation email with all the details.
+              Your reservation has been successfully confirmed. We've sent a
+              confirmation email with all the details.
             </p>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
             <Card className="shadow-xl border-0 mb-8">
               <CardHeader>
                 <CardTitle className="text-primary">Booking Details</CardTitle>
@@ -57,7 +54,9 @@ export default function BookingSuccessPage() {
                   </div>
                   <div>
                     <p className="font-medium text-primary">Hotel</p>
-                    <p className="text-muted-foreground">Pearl Continental Peshawar</p>
+                    <p className="text-muted-foreground">
+                      Pearl Continental Peshawar
+                    </p>
                   </div>
                   <div>
                     <p className="font-medium text-primary">Check-in</p>
@@ -73,7 +72,9 @@ export default function BookingSuccessPage() {
                   </div>
                   <div>
                     <p className="font-medium text-primary">Total Amount</p>
-                    <p className="text-muted-foreground font-bold">PKR 47,250</p>
+                    <p className="text-muted-foreground font-bold">
+                      PKR 47,250
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -133,5 +134,5 @@ export default function BookingSuccessPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

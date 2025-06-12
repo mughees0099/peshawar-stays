@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,6 +124,8 @@ export default function HotelDetailPage() {
   const [guests, setGuests] = useState("2");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [checkOutOpen, setCheckOutOpen] = useState(false);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
@@ -147,52 +149,24 @@ export default function HotelDetailPage() {
     return nights * (room?.price || 0);
   };
 
+  useEffect(() => {
+    if (checkIn && checkOut) {
+      const diffInTime = checkOut.getTime() - checkIn.getTime();
+      if (diffInTime <= 0) {
+        alert("Checkout date must be at least one day after check-in.");
+        setCheckOut(undefined);
+      }
+    }
+  }, [checkIn, checkOut]);
+
+  const getNextDay = (date: Date) => {
+    const next = new Date(date);
+    next.setDate(date.getDate() + 1);
+    return next;
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50"
-      >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary">
-              PeshawarStays
-            </Link>
-            <div className="hidden md:flex items-center space-x-6">
-              <Link
-                href="/hotels"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Browse Hotels
-              </Link>
-              <Link
-                href="/become-host"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Become a Host
-              </Link>
-              <Link
-                href="/about"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                About
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost">Login</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Sign Up</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <motion.div
@@ -453,7 +427,10 @@ export default function HotelDetailPage() {
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <Label htmlFor="checkin">Check-in</Label>
-                          <Popover>
+                          <Popover
+                            open={checkInOpen}
+                            onOpenChange={setCheckInOpen}
+                          >
                             <PopoverTrigger asChild>
                               <motion.div whileHover={{ scale: 1.02 }}>
                                 <Button
@@ -471,16 +448,50 @@ export default function HotelDetailPage() {
                               <Calendar
                                 mode="single"
                                 selected={checkIn}
-                                onSelect={setCheckIn}
+                                onSelect={(date) => {
+                                  setCheckIn(date);
+                                  setCheckInOpen(false);
+                                }}
                                 disablePastDates={true}
                                 initialFocus
+                                modifiersClassNames={{
+                                  disabled:
+                                    "text-gray-400 opacity-40 cursor-not-allowed hover:bg-transparent",
+                                }}
+                                classNames={{
+                                  months: "flex flex-col space-y-4",
+                                  month: "space-y-4",
+                                  caption:
+                                    "flex justify-center text-center items-center px-4 pt-4",
+                                  caption_label:
+                                    "text-lg font-semibold flex justify-center text-gray-800",
+                                  nav: "flex items-center justify-between gap-2",
+                                  nav_button:
+                                    "h-8 w-8 rounded-md border text-gray-600 hover:bg-gray-100 transition",
+                                  table: "w-full border-collapse space-y-1",
+                                  head_row: "flex",
+                                  head_cell:
+                                    "flex-1 text-center text-sm font-semibold text-gray-600",
+                                  row: "flex w-full mt-1",
+                                  cell: "h-10 w-10 text-center text-sm p-0 relative",
+                                  day: "h-10 w-10 text-center rounded-md text-sm hover:bg-primary hover:text-white transition",
+                                  day_selected:
+                                    "bg-primary text-center text-white",
+                                  day_today:
+                                    "border border-primary font-bold text-primary",
+                                  day_disabled:
+                                    "text-gray-400 opacity-40 cursor-not-allowed",
+                                }}
                               />
                             </PopoverContent>
                           </Popover>
                         </div>
                         <div>
                           <Label htmlFor="checkout">Check-out</Label>
-                          <Popover>
+                          <Popover
+                            open={checkOutOpen}
+                            onOpenChange={setCheckOutOpen}
+                          >
                             <PopoverTrigger asChild>
                               <motion.div whileHover={{ scale: 1.02 }}>
                                 <Button
@@ -498,12 +509,45 @@ export default function HotelDetailPage() {
                               <Calendar
                                 mode="single"
                                 selected={checkOut}
-                                onSelect={setCheckOut}
+                                onSelect={(date) => {
+                                  setCheckOut(date);
+                                  setCheckOutOpen(false);
+                                }}
                                 disablePastDates={true}
                                 disabled={
-                                  checkIn ? { before: checkIn } : undefined
+                                  checkIn
+                                    ? [{ before: getNextDay(checkIn) }, checkIn]
+                                    : { before: new Date() }
                                 }
                                 initialFocus
+                                modifiersClassNames={{
+                                  disabled:
+                                    "text-gray-400 opacity-40 cursor-not-allowed hover:bg-transparent",
+                                }}
+                                classNames={{
+                                  months: "flex flex-col space-y-4",
+                                  month: "space-y-4",
+                                  caption:
+                                    "flex justify-center text-center items-center px-4 pt-4",
+                                  caption_label:
+                                    "text-lg font-semibold flex justify-center text-gray-800",
+                                  nav: "flex items-center justify-between gap-2",
+                                  nav_button:
+                                    "h-8 w-8 rounded-md border text-gray-600 hover:bg-gray-100 transition",
+                                  table: "w-full border-collapse space-y-1",
+                                  head_row: "flex",
+                                  head_cell:
+                                    "flex-1 text-center text-sm font-semibold text-gray-600",
+                                  row: "flex w-full mt-1",
+                                  cell: "h-10 w-10 text-center text-sm p-0 relative",
+                                  day: "h-10 w-10 text-center rounded-md text-sm hover:bg-primary hover:text-white transition",
+                                  day_selected:
+                                    "bg-primary text-center text-white",
+                                  day_today:
+                                    "border border-primary font-bold text-primary",
+                                  day_disabled:
+                                    "text-gray-400 opacity-40 cursor-not-allowed",
+                                }}
                               />
                             </PopoverContent>
                           </Popover>

@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import {
   Users,
   Home,
@@ -21,9 +27,9 @@ import {
   Edit,
   Shield,
   LogOut,
-} from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 const stats = [
   {
@@ -50,7 +56,7 @@ const stats = [
     change: "+5%",
     icon: TrendingUp,
   },
-]
+];
 
 const pendingProperties = [
   {
@@ -73,7 +79,7 @@ const pendingProperties = [
     submittedDate: "2024-02-08",
     image: "/placeholder.svg?height=100&width=150",
   },
-]
+];
 
 const allUsers = [
   {
@@ -103,7 +109,7 @@ const allUsers = [
     status: "Pending",
     properties: 1,
   },
-]
+];
 
 const allProperties = [
   {
@@ -128,60 +134,60 @@ const allProperties = [
     status: "Active",
     revenue: 245000,
   },
-]
+];
 
 const handleLogout = () => {
   if (confirm("Are you sure you want to logout?")) {
-    window.location.href = "/login"
+    window.location.href = "/login";
   }
-}
+};
 
 const handleApproveProperty = (propertyId: number) => {
   if (confirm("Approve this property?")) {
-    alert("Property approved successfully!")
+    alert("Property approved successfully!");
     // Update property status logic here
   }
-}
+};
 
 const handleRejectProperty = (propertyId: number) => {
   if (confirm("Reject this property?")) {
-    alert("Property rejected.")
+    alert("Property rejected.");
     // Update property status logic here
   }
-}
+};
 
 const handleReviewProperty = (propertyId: number) => {
-  alert(`Opening detailed review for property ${propertyId}`)
+  alert(`Opening detailed review for property ${propertyId}`);
   // Add review modal logic here
-}
+};
 
 const handleViewPropertyDetails = (propertyId: number) => {
-  alert(`Viewing details for property ${propertyId}`)
+  alert(`Viewing details for property ${propertyId}`);
   // Add property details modal logic here
-}
+};
 
 const handleEditProperty = (propertyId: number) => {
-  alert(`Opening edit form for property ${propertyId}`)
+  alert(`Opening edit form for property ${propertyId}`);
   // Add edit modal logic here
-}
+};
 
 const handleViewUserDetails = (userId: number) => {
-  alert(`Viewing details for user ${userId}`)
+  alert(`Viewing details for user ${userId}`);
   // Add user details modal logic here
-}
+};
 
 const handleEditUser = (userId: number) => {
-  alert(`Opening edit form for user ${userId}`)
+  alert(`Opening edit form for user ${userId}`);
   // Add edit modal logic here
-}
+};
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      {/* <nav className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -204,15 +210,21 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage users, properties, and platform operations</p>
+          <p className="text-muted-foreground">
+            Manage users, properties, and platform operations
+          </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="properties">Properties</TabsTrigger>
@@ -229,9 +241,13 @@ export default function AdminDashboard() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {stat.title}
+                        </p>
                         <p className="text-2xl font-bold">{stat.value}</p>
-                        <p className="text-sm text-green-600">{stat.change} from last month</p>
+                        <p className="text-sm text-green-600">
+                          {stat.change} from last month
+                        </p>
                       </div>
                       <stat.icon className="h-8 w-8 text-muted-foreground" />
                     </div>
@@ -244,12 +260,17 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Pending Property Approvals</CardTitle>
-                <CardDescription>Review and approve new property listings</CardDescription>
+                <CardDescription>
+                  Review and approve new property listings
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {pendingProperties.map((property) => (
-                    <div key={property.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={property.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex items-center space-x-4">
                         <Image
                           src={property.image || "/placeholder.svg"}
@@ -264,20 +285,32 @@ export default function AdminDashboard() {
                             by {property.owner} • {property.location}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {property.type} • {property.rooms} rooms • Submitted {property.submittedDate}
+                            {property.type} • {property.rooms} rooms • Submitted{" "}
+                            {property.submittedDate}
                           </p>
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" onClick={() => handleReviewProperty(property.id)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReviewProperty(property.id)}
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           Review
                         </Button>
-                        <Button size="sm" onClick={() => handleApproveProperty(property.id)}>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApproveProperty(property.id)}
+                        >
                           <Check className="h-4 w-4 mr-2" />
                           Approve
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleRejectProperty(property.id)}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleRejectProperty(property.id)}
+                        >
                           <X className="h-4 w-4 mr-2" />
                           Reject
                         </Button>
@@ -315,8 +348,16 @@ export default function AdminDashboard() {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-semibold">{property.name}</h3>
-                          <Badge variant={property.status === "Active" ? "default" : "secondary"}>
+                          <h3 className="text-lg font-semibold">
+                            {property.name}
+                          </h3>
+                          <Badge
+                            variant={
+                              property.status === "Active"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {property.status}
                           </Badge>
                         </div>
@@ -337,17 +378,33 @@ export default function AdminDashboard() {
                             <p className="text-muted-foreground">Rating</p>
                           </div>
                           <div>
-                            <p className="font-medium">PKR {property.revenue.toLocaleString()}</p>
+                            <p className="font-medium">
+                              PKR {property.revenue.toLocaleString()}
+                            </p>
                             <p className="text-muted-foreground">Revenue</p>
                           </div>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => handleViewPropertyDetails(property.id)}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                handleViewPropertyDetails(property.id)
+                              }
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => handleEditProperty(property.id)}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditProperty(property.id)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => alert("More options...")}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => alert("More options...")}
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </div>
@@ -408,29 +465,55 @@ export default function AdminDashboard() {
                               </Avatar>
                               <div>
                                 <p className="font-medium">{user.name}</p>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {user.email}
+                                </p>
                               </div>
                             </div>
                           </td>
                           <td className="p-4">
                             <Badge variant="outline">{user.type}</Badge>
                           </td>
-                          <td className="p-4 text-muted-foreground">{user.joinDate}</td>
+                          <td className="p-4 text-muted-foreground">
+                            {user.joinDate}
+                          </td>
                           <td className="p-4">
-                            <Badge variant={user.status === "Active" ? "default" : "secondary"}>{user.status}</Badge>
+                            <Badge
+                              variant={
+                                user.status === "Active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {user.status}
+                            </Badge>
                           </td>
                           <td className="p-4 text-muted-foreground">
-                            {user.type === "Customer" ? `${user.bookings} bookings` : `${user.properties} properties`}
+                            {user.type === "Customer"
+                              ? `${user.bookings} bookings`
+                              : `${user.properties} properties`}
                           </td>
                           <td className="p-4">
                             <div className="flex space-x-2">
-                              <Button size="sm" variant="outline" onClick={() => handleViewUserDetails(user.id)}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewUserDetails(user.id)}
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="outline" onClick={() => handleEditUser(user.id)}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditUser(user.id)}
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="outline" onClick={() => alert("More user options...")}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => alert("More user options...")}
+                              >
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </div>
@@ -448,7 +531,9 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-bold">All Bookings</h2>
             <Card>
               <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">Booking management interface will be implemented here.</p>
+                <p className="text-muted-foreground">
+                  Booking management interface will be implemented here.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -458,7 +543,8 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
-                  Analytics dashboard with charts and insights will be implemented here.
+                  Analytics dashboard with charts and insights will be
+                  implemented here.
                 </p>
               </CardContent>
             </Card>
@@ -466,5 +552,5 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

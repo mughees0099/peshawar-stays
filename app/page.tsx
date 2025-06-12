@@ -3,19 +3,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import {
   Search,
   MapPin,
-  CalendarIcon,
   Users,
   Star,
   Wifi,
@@ -27,12 +20,9 @@ import {
   Clock,
   CheckCircle,
   ArrowRight,
-  X,
-  Menu,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { format } from "date-fns";
 
 const featuredHotels = [
   {
@@ -87,12 +77,12 @@ const featuredHotels = [
 
 const testimonials = [
   {
-    name: "Ahmed Khan",
+    name: "Iqra Ahmad",
     location: "Islamabad",
     rating: 5,
     comment:
       "Exceptional service and luxurious accommodations. PeshawarStays made our business trip memorable.",
-    image: "/placeholder.svg?height=60&width=60",
+    image: "/girl1.jpg?height=60&width=60",
   },
   {
     name: "Sarah Ali",
@@ -100,7 +90,7 @@ const testimonials = [
     rating: 5,
     comment:
       "Found the perfect guest house for our family vacation. The booking process was seamless.",
-    image: "/placeholder.svg?height=60&width=60",
+    image: "/girl2.jpg?height=60&width=60",
   },
   {
     name: "Muhammad Hassan",
@@ -108,7 +98,7 @@ const testimonials = [
     rating: 5,
     comment:
       "Outstanding platform with verified properties. Highly recommend for anyone visiting Peshawar.",
-    image: "/placeholder.svg?height=60&width=60",
+    image: "boy1.jpg?height=60&width=60",
   },
 ];
 
@@ -169,197 +159,11 @@ export default function HomePage() {
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState("2");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      {/* <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50"
-      >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary">
-              PeshawarStays
-            </Link>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/hotels"
-                className="text-muted-foreground hover:text-primary transition-colors font-medium"
-              >
-                Browse Hotels
-              </Link>
-              <Link
-                href="/about"
-                className="text-muted-foreground hover:text-primary transition-colors font-medium"
-              >
-                About Us
-              </Link>
-              <Link
-                href="/become-host"
-                className="text-muted-foreground hover:text-primary transition-colors font-medium"
-              >
-                Become a Host
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost" className="font-medium">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button className="bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-medium">
-                    Sign Up
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </motion.nav> */}
-
-      <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50"
-      >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-primary">
-              PeshawarStays
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              <Link
-                href="/hotels"
-                className="text-muted-foreground hover:text-primary transition-colors font-medium"
-              >
-                Browse Hotels
-              </Link>
-              <Link
-                href="/about"
-                className="text-muted-foreground hover:text-primary transition-colors font-medium"
-              >
-                About Us
-              </Link>
-              <Link
-                href="/become-host"
-                className="text-muted-foreground hover:text-primary transition-colors font-medium"
-              >
-                Become a Host
-              </Link>
-            </div>
-
-            {/* Desktop Auth Buttons */}
-            <div className="hidden lg:flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost" className="font-medium">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/register">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button className="bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-medium">
-                    Sign Up
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 h-10 w-10"
-              >
-                <motion.div
-                  animate={{ rotate: mobileMenuOpen ? 90 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {mobileMenuOpen ? (
-                    <X className="h-6 w-6" />
-                  ) : (
-                    <Menu className="h-6 w-6" />
-                  )}
-                </motion.div>
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile Menu */}
-          <motion.div
-            initial={false}
-            animate={{
-              height: mobileMenuOpen ? "auto" : 0,
-              opacity: mobileMenuOpen ? 1 : 0,
-            }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden overflow-hidden"
-          >
-            <motion.div
-              initial={{ y: -20 }}
-              animate={{ y: mobileMenuOpen ? 0 : -20 }}
-              transition={{ duration: 0.3, delay: mobileMenuOpen ? 0.1 : 0 }}
-              className="py-4 space-y-4 border-t mt-4"
-            >
-              <Link
-                href="/hotels"
-                className="block text-muted-foreground hover:text-primary transition-colors font-medium py-2 px-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Browse Hotels
-              </Link>
-              <Link
-                href="/about"
-                className="block text-muted-foreground hover:text-primary transition-colors font-medium py-2 px-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About Us
-              </Link>
-              <Link
-                href="/become-host"
-                className="block text-muted-foreground hover:text-primary transition-colors font-medium py-2 px-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Become a Host
-              </Link>
-              <div className="flex flex-col space-y-2 pt-4 border-t">
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start font-medium"
-                  >
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-medium">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.nav>
-
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-luxury-navy via-luxury-charcoal to-primary py-20 md:py-32 overflow-hidden">
+      <section className="relative bg-black py-20 md:py-32 overflow-hidden">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.3 }}
@@ -368,7 +172,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0">
           <Image
-            src="/placeholder.svg?height=800&width=1600"
+            src="/bg-main.jpg?height=800&width=1600"
             alt="Luxury Hotel Background"
             fill
             className="object-cover opacity-30"
@@ -411,10 +215,10 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
             >
-              <Card className="max-w-5xl mx-auto shadow-2xl border-0 backdrop-blur-sm bg-white/95">
+              <Card className="max-w-5xl mx-auto shadow-2xl border-0  bg-transparent backdrop-blur-sm">
                 <CardContent className="p-8">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <motion.div
+                    {/* <motion.div
                       whileHover={{ scale: 1.02 }}
                       className="relative"
                     >
@@ -499,19 +303,21 @@ export default function HomePage() {
                           setGuests(e.target.value.replace(" guests", ""))
                         }
                       />
-                    </motion.div>
+                    </motion.div> */}
                   </div>
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Button
-                      className="w-full mt-6 h-16 text-xl font-semibold bg-luxury-gold hover:bg-luxury-gold/90 text-primary transition-all duration-300"
-                      size="lg"
-                    >
-                      <Search className="mr-3 h-6 w-6" />
-                      Find Luxury Accommodations
-                    </Button>
+                    <Link href="/hotels">
+                      <Button
+                        className="w-full mt-6 h-16 text-xl font-semibold bg-luxury-gold hover:bg-luxury-gold/90 text-primary transition-all duration-300"
+                        size="lg"
+                      >
+                        <Search className="mr-3 h-6 w-6" />
+                        Find Luxury Accommodations
+                      </Button>
+                    </Link>
                   </motion.div>
                 </CardContent>
               </Card>
@@ -549,7 +355,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* How It Works */}
       <section className="py-20 bg-luxury-cream">
         <div className="container mx-auto px-4">
@@ -584,7 +389,7 @@ export default function HomePage() {
                 key={step.step}
                 variants={fadeInUp}
                 whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                className="text-center group"
+                className="text-center group shadow-sm shadow-black/10 p-6  bg-white rounded-lg cursor-pointer"
               >
                 <div className="relative mb-8">
                   <motion.div
@@ -618,7 +423,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
       {/* Featured Hotels */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -782,7 +586,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
       {/* Customer Reviews */}
       <section className="py-20 bg-luxury-cream">
         <div className="container mx-auto px-4">
@@ -879,9 +682,8 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
       {/* Why Choose Us */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-luxury-cream">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -926,7 +728,7 @@ export default function HomePage() {
                 key={item.title}
                 variants={fadeInUp}
                 whileHover={{ y: -10, scale: 1.02 }}
-                className="text-center group"
+                className="text-center group shadow-sm shadow-black/10 p-6  bg-white rounded-lg cursor-pointer"
               >
                 <motion.div
                   whileHover={{ scale: 1.2, rotate: 10 }}
@@ -945,7 +747,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
       {/* Call to Action */}
       <motion.section
         initial={{ opacity: 0 }}
@@ -1006,7 +807,7 @@ export default function HomePage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold shadow-lg"
+                      className="border-white  hover:bg-white text-primary px-8 py-4 text-lg font-semibold shadow-lg"
                     >
                       Become a Host
                     </Button>
@@ -1017,102 +818,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </motion.section>
-
-      {/* Footer */}
-      <footer className="bg-primary text-white py-16">
-        <div className="container mx-auto px-4">
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-8"
-          >
-            <motion.div variants={fadeInUp}>
-              <h3 className="text-2xl font-bold mb-6 text-luxury-gold">
-                PeshawarStays
-              </h3>
-              <p className="text-gray-300 leading-relaxed mb-4">
-                Your premier platform for discovering luxury accommodations in
-                Peshawar, Pakistan. Experience authentic hospitality with modern
-                comfort.
-              </p>
-              <div className="flex space-x-4">
-                {["f", "t", "i"].map((social, index) => (
-                  <motion.div
-                    key={social}
-                    whileHover={{ scale: 1.2, rotate: 10 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 bg-luxury-gold rounded-full flex items-center justify-center cursor-pointer"
-                  >
-                    <span className="text-primary font-bold">{social}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {[
-              {
-                title: "For Guests",
-                links: [
-                  { name: "Browse Hotels", href: "/hotels" },
-                  { name: "Guest Reviews", href: "/reviews" },
-                  { name: "Help Center", href: "/help" },
-                  { name: "Contact Support", href: "/contact" },
-                ],
-              },
-              {
-                title: "For Hosts",
-                links: [
-                  { name: "Become a Host", href: "/become-host" },
-                  { name: "Host Dashboard", href: "/dashboard/host" },
-                  { name: "Resources", href: "/host-resources" },
-                  { name: "Host Support", href: "/host-support" },
-                ],
-              },
-              {
-                title: "Company",
-                links: [
-                  { name: "About Us", href: "/about" },
-                  { name: "Careers", href: "/careers" },
-                  { name: "Privacy Policy", href: "/privacy" },
-                  { name: "Terms of Service", href: "/terms" },
-                ],
-              },
-            ].map((section, index) => (
-              <motion.div key={section.title} variants={fadeInUp}>
-                <h4 className="font-bold mb-6 text-luxury-gold">
-                  {section.title}
-                </h4>
-                <ul className="space-y-3 text-gray-300">
-                  {section.links.map((link) => (
-                    <motion.li key={link.name} whileHover={{ x: 5 }}>
-                      <Link
-                        href={link.href}
-                        className="hover:text-luxury-gold transition-colors"
-                      >
-                        {link.name}
-                      </Link>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            viewport={{ once: true }}
-            className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400"
-          >
-            <p>
-              &copy; 2024 PeshawarStays. All rights reserved. Crafted with ❤️
-              for luxury travelers.
-            </p>
-          </motion.div>
-        </div>
-      </footer>
     </div>
   );
 }
