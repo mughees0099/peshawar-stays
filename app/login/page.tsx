@@ -1,49 +1,127 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import cookies from "js-cookie";
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<"customer" | "host" | "admin">("customer")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [rememberedEmail, setRememberedEmail] = useState("");
+  const router = useRouter();
+
+  const validateForm = (email: string, password: string) => {
+    const newErrors: Record<string, string> = {};
+
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    return newErrors;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
 
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false)
+    setErrors({});
+    setLoginError(null);
 
-      // Redirect based on user type
-      switch (userType) {
-        case "customer":
-          router.push("/dashboard/customer")
-          break
-        case "host":
-          router.push("/dashboard/host")
-          break
-        case "admin":
-          router.push("/admin")
-          break
-        default:
-          router.push("/")
+    const form = e.target as HTMLFormElement;
+    const email = form.email.value;
+    const password = form.password.value;
+    const rememberMe = form.remember?.checked || false;
+
+    const validationErrors = validateForm(email, password);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post("/api/auth/login", {
+        email,
+        password,
+        rememberMe,
+      });
+
+      const { token, userType } = response.data;
+      if (rememberMe) {
+        cookies.set("token", token, {
+          expires: rememberMe ? 7 : 1,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
       }
-    }, 2000)
-  }
+
+      if (userType === "customer") {
+        window.location.href = "/dashboard/customer";
+      } else if (userType === "host") {
+        window.location.href = "/dashboard/host";
+      } else if (userType === "admin") {
+        window.location.href = "/dashboard/admin";
+      } else {
+        setLoginError("Unknown user type. Please contact support.");
+      }
+
+      if (typeof window !== "undefined") {
+        if (rememberMe) {
+          localStorage.setItem("rememberedEmail", email);
+        } else {
+          localStorage.removeItem("rememberedEmail");
+        }
+      }
+    } catch (error: any) {
+      setLoginError(error.response.data.error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedEmail = localStorage.getItem("rememberedEmail");
+      if (storedEmail) {
+        setRememberedEmail(storedEmail);
+        // Set the remember checkbox to checked
+        const rememberCheckbox = document.getElementById(
+          "remember"
+        ) as HTMLInputElement;
+        if (rememberCheckbox) {
+          rememberCheckbox.checked = true;
+        }
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-luxury-cream to-white flex items-center justify-center p-4">
@@ -61,198 +139,146 @@ export default function LoginPage() {
         </div>
 
         <Card className="shadow-xl border-0">
-          <CardHeader>
+          <CardHeader className="text-center">
             <CardTitle className="text-primary">Sign In</CardTitle>
-            <CardDescription>Choose your account type and sign in to continue</CardDescription>
+            <br />
+            <CardDescription>
+              Sign in to your account to continue exploring luxury stays in
+              Peshawar.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={userType} onValueChange={(value) => setUserType(value as any)} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="customer">Customer</TabsTrigger>
-                <TabsTrigger value="host">Host</TabsTrigger>
-                <TabsTrigger value="admin">Admin</TabsTrigger>
-              </TabsList>
+            {loginError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-center gap-2"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{loginError}</span>
+              </motion.div>
+            )}
 
-              <form onSubmit={handleLogin}>
-                <TabsContent value="customer" className="space-y-4 mt-6">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="space-y-2"
+            <form onSubmit={handleLogin} className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="space-y-2"
+              >
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className={errors.email ? "border-red-500" : ""}
+                  defaultValue={rememberedEmail}
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-500 mt-1">{errors.email}</p>
+                )}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="space-y-2"
+              >
+                <div className="flex justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-primary hover:underline"
                   >
-                    <Label htmlFor="customer-email">Email</Label>
-                    <Input id="customer-email" type="email" placeholder="Enter your email" required />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="space-y-2"
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className={
+                      errors.password ? "border-red-500 pr-10" : "pr-10"
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
-                    <Label htmlFor="customer-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="customer-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+                )}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex items-center space-x-2"
+              >
+                <Checkbox id="remember" name="remember" />
+                <Label htmlFor="remember" className="text-sm">
+                  Remember me
+                </Label>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  type="submit"
+                  className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-4 w-4 text-primary"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Signing In...
                     </div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox id="customer-remember" />
-                    <Label htmlFor="customer-remember" className="text-sm">
-                      Remember me
-                    </Label>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      type="submit"
-                      className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing In..." : "Sign In as Customer"}
-                    </Button>
-                  </motion.div>
-                </TabsContent>
-
-                <TabsContent value="host" className="space-y-4 mt-6">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="space-y-2"
-                  >
-                    <Label htmlFor="host-email">Email</Label>
-                    <Input id="host-email" type="email" placeholder="Enter your email" required />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="space-y-2"
-                  >
-                    <Label htmlFor="host-password">Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="host-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox id="host-remember" />
-                    <Label htmlFor="host-remember" className="text-sm">
-                      Remember me
-                    </Label>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      type="submit"
-                      className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing In..." : "Sign In as Host"}
-                    </Button>
-                  </motion.div>
-                </TabsContent>
-
-                <TabsContent value="admin" className="space-y-4 mt-6">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="space-y-2"
-                  >
-                    <Label htmlFor="admin-email">Admin Email</Label>
-                    <Input id="admin-email" type="email" placeholder="Enter admin email" required />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="space-y-2"
-                  >
-                    <Label htmlFor="admin-password">Admin Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="admin-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter admin password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      type="submit"
-                      className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing In..." : "Sign In as Admin"}
-                    </Button>
-                  </motion.div>
-                </TabsContent>
-              </form>
-            </Tabs>
-
-            <div className="mt-6 text-center">
-              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot your password?
-              </Link>
-            </div>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </motion.div>
+            </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
@@ -266,5 +292,5 @@ export default function LoginPage() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

@@ -36,7 +36,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navbar />
-        {children}
+        <div className="mt-16">{children}</div>
         <Footer />
       </body>
     </html>

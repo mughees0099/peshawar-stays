@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useCurrentUser } from "@/hooks/currentUser";
 
 const featuredHotels = [
   {
@@ -156,10 +157,6 @@ const scaleOnHover = {
 };
 
 export default function HomePage() {
-  const [checkIn, setCheckIn] = useState<Date>();
-  const [checkOut, setCheckOut] = useState<Date>();
-  const [guests, setGuests] = useState("2");
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -596,7 +593,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="mb-4 bg-luxury-gold text-primary">
+            <Badge className="mb-4  bg-luxury-gold text-primary">
               Guest Experiences
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-primary mb-6">
