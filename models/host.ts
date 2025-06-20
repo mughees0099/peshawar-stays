@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Define the Host schema
 const hostSchema = new mongoose.Schema(
   {
     firstName: {
@@ -60,6 +59,16 @@ const hostSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
     },
   },
   {

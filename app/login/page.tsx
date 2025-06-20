@@ -20,6 +20,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import cookies from "js-cookie";
+import { toast } from "react-toastify";
+import { generateOTP } from "@/lib/otp";
+import { se } from "date-fns/locale";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -84,11 +87,20 @@ export default function LoginPage() {
       }
 
       if (userType === "customer") {
-        window.location.href = "/dashboard/customer";
+        toast.success("Login successful! Redirecting to customer dashboard...");
+        setTimeout(() => {
+          window.location.href = "/dashboard/customer";
+        }, 2000);
       } else if (userType === "host") {
-        window.location.href = "/dashboard/host";
+        toast.success("Login successful! Redirecting to host dashboard...");
+        setTimeout(() => {
+          window.location.href = "/dashboard/host";
+        }, 2000);
       } else if (userType === "admin") {
-        window.location.href = "/dashboard/admin";
+        toast.success("Login successful! Redirecting to admin dashboard...");
+        setTimeout(() => {
+          window.location.href = "/dashboard/admin";
+        }, 2000);
       } else {
         setLoginError("Unknown user type. Please contact support.");
       }
@@ -101,7 +113,113 @@ export default function LoginPage() {
         }
       }
     } catch (error: any) {
-      setLoginError(error.response.data.error);
+      console.log("Login error:", error);
+      toast.error(
+        error.response?.data?.error || "Login failed. Please try again."
+      );
+      if (
+        error.response.data.error ===
+        "Account verification required. Please check your email for the OTP or register again."
+      ) {
+        const otp = generateOTP();
+        const response = await axios.post("/api/auth/register/send-otp", {
+          email,
+          otp,
+          subject: "Your OTP Code",
+          text: `Your new OTP is ${otp}`,
+          html: `<!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <title>Your OTP Code</title>
+              <style>
+                body {
+                  background-color: #f4f4f7;
+                  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                }
+          
+                .container {
+                  max-width: 480px;
+                  margin: 40px auto;
+                  background: #ffffff;
+                  border-radius: 8px;
+                  padding: 32px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                }
+          
+                .header {
+                  text-align: center;
+                  margin-bottom: 24px;
+                }
+          
+                .header h1 {
+                  font-size: 24px;
+                  color: #333333;
+                  margin: 0;
+                }
+          
+                .content {
+                  font-size: 16px;
+                  color: #555555;
+                  line-height: 1.6;
+                }
+          
+                .otp-box {
+                  background-color: #f0f9ff;
+                  color: #007bff;
+                  padding: 16px;
+                  text-align: center;
+                  font-size: 28px;
+                  font-weight: bold;
+                  border-radius: 6px;
+                  margin: 24px 0;
+                  letter-spacing: 4px;
+                }
+          
+                .footer {
+                  font-size: 13px;
+                  text-align: center;
+                  color: #999999;
+                  margin-top: 32px;
+                }
+              </style>
+            </head>
+          
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Email Verification</h1>
+                </div>
+                <div class="content">
+                  <p>Hello, </p>
+                  <p>
+                    Thank you for creating an account with us. To complete your
+                    registration, please use the OTP code below:
+                  </p>
+                  <div class="otp-box">${otp}</div>
+                  <p>This OTP is valid for <strong>15 minutes</strong>.</p>
+                  <p>If you didn’t request this, please ignore this email.</p>
+                </div>
+                <div class="footer">
+                  &copy; ${new Date().getFullYear()} Peshawar Stays. All rights reserved.
+                </div>
+              </div>
+            </body>
+          </html>
+          `,
+        });
+        if (response.status === 200) {
+          toast.success("OTP sent to your email. Please verify to continue.");
+          router.push(
+            `/register/${encodeURIComponent(email)}?email=${encodeURIComponent(
+              email
+            )}`
+          );
+        }
+        // Redirect to register page with email
+      }
     } finally {
       setIsLoading(false);
     }

@@ -27,6 +27,9 @@ import Link from "next/link";
 import axios from "axios";
 import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { generateOTP } from "@/lib/otp";
+import { text } from "stream/consumers";
 
 export default function RegisterPage() {
   const [userType, setUserType] = useState<"customer" | "host">("customer");
@@ -187,19 +190,12 @@ export default function RegisterPage() {
       const gender = formData.get("customer_gender") as string;
       const phone = formData.get("customer_phone") as string;
       const password = formData.get("customer_password") as string;
-      console.log("Submitting registration with data:", {
-        firstName,
-        lastName,
-        email,
-        gender,
-        phone,
-        password,
-        userType: "customer",
-      });
 
       const response = await axios.post("/api/auth/register", {
-        firstName,
-        lastName,
+        firstName:
+          firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(),
+        lastName:
+          lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase(),
         email,
         gender,
         phone,
@@ -207,9 +203,109 @@ export default function RegisterPage() {
         userType: "customer",
       });
 
-      setSubmitSuccess("Registration successful! You can now log in.");
+      if (response.status == 201) {
+        const otp = generateOTP();
+        const sentOtp = await axios.post("/api/auth/register/send-otp", {
+          email: response.data.email,
+          otp,
+          subject: "Account Verification",
+          text: `Hello ${firstName},\n\nYour OTP for account verification is: ${otp}\n\nThank you!`,
+          html: `<!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <title>Your OTP Code</title>
+              <style>
+                body {
+                  background-color: #f4f4f7;
+                  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                }
+          
+                .container {
+                  max-width: 480px;
+                  margin: 40px auto;
+                  background: #ffffff;
+                  border-radius: 8px;
+                  padding: 32px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                }
+          
+                .header {
+                  text-align: center;
+                  margin-bottom: 24px;
+                }
+          
+                .header h1 {
+                  font-size: 24px;
+                  color: #333333;
+                  margin: 0;
+                }
+          
+                .content {
+                  font-size: 16px;
+                  color: #555555;
+                  line-height: 1.6;
+                }
+          
+                .otp-box {
+                  background-color: #f0f9ff;
+                  color: #007bff;
+                  padding: 16px;
+                  text-align: center;
+                  font-size: 28px;
+                  font-weight: bold;
+                  border-radius: 6px;
+                  margin: 24px 0;
+                  letter-spacing: 4px;
+                }
+          
+                .footer {
+                  font-size: 13px;
+                  text-align: center;
+                  color: #999999;
+                  margin-top: 32px;
+                }
+              </style>
+            </head>
+          
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Email Verification</h1>
+                </div>
+                <div class="content">
+                  <p>Hello ${
+                    firstName.charAt(0).toUpperCase() +
+                    firstName.slice(1).toLowerCase()
+                  }</p>
+                  <p>
+                    Thank you for creating an account with us. To complete your
+                    registration, please use the OTP code below:
+                  </p>
+                  <div class="otp-box">${otp}</div>
+                  <p>This OTP is valid for <strong>15 minutes</strong>.</p>
+                  <p>If you didn’t request this, please ignore this email.</p>
+                </div>
+                <div class="footer">
+                  &copy; ${new Date().getFullYear()} Peshawar Stays. All rights reserved.
+                </div>
+              </div>
+            </body>
+          </html>
+          `,
+        });
 
-      router.push("/login");
+        if (sentOtp.status === 200) {
+          toast.success("OTP sent to your email. Please verify your account.");
+          router.push(
+            `/register/${response.data.id}?email=${encodeURIComponent(
+              response.data.email
+            )}`
+          );
+        }
+      }
       (e.target as HTMLFormElement).reset();
     } catch (err) {
       console.log("Registration error:", err.message);
@@ -262,8 +358,10 @@ export default function RegisterPage() {
       const password = formData.get("host_password") as string;
 
       const response = await axios.post("/api/auth/register", {
-        firstName,
-        lastName,
+        firstName:
+          firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(),
+        lastName:
+          lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase(),
         email,
         gender,
         phone,
@@ -274,11 +372,110 @@ export default function RegisterPage() {
         userType: "host",
       });
 
-      setSubmitSuccess(
-        "Registration successful! Your account is pending approval. You'll be notified once approved."
-      );
+      if (response.status == 201) {
+        const otp = generateOTP();
+        const sentOtp = await axios.post("/api/auth/register/send-otp", {
+          email: response.data.email,
+          otp,
+          subject: "Account Verification",
+          text: `Hello ${firstName},\n\nYour OTP for account verification is: ${otp}\n\nThank you!`,
+          html: `<!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <title>Your OTP Code</title>
+              <style>
+                body {
+                  background-color: #f4f4f7;
+                  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                }
+          
+                .container {
+                  max-width: 480px;
+                  margin: 40px auto;
+                  background: #ffffff;
+                  border-radius: 8px;
+                  padding: 32px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                }
+          
+                .header {
+                  text-align: center;
+                  margin-bottom: 24px;
+                }
+          
+                .header h1 {
+                  font-size: 24px;
+                  color: #333333;
+                  margin: 0;
+                }
+          
+                .content {
+                  font-size: 16px;
+                  color: #555555;
+                  line-height: 1.6;
+                }
+          
+                .otp-box {
+                  background-color: #f0f9ff;
+                  color: #007bff;
+                  padding: 16px;
+                  text-align: center;
+                  font-size: 28px;
+                  font-weight: bold;
+                  border-radius: 6px;
+                  margin: 24px 0;
+                  letter-spacing: 4px;
+                }
+          
+                .footer {
+                  font-size: 13px;
+                  text-align: center;
+                  color: #999999;
+                  margin-top: 32px;
+                }
+              </style>
+            </head>
+          
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Email Verification</h1>
+                </div>
+                <div class="content">
+                  <p>Hello ${
+                    firstName.charAt(0).toUpperCase() +
+                    firstName.slice(1).toLowerCase()
+                  }</p>
+                  <p>
+                    Thank you for creating an account with us. To complete your
+                    registration, please use the OTP code below:
+                  </p>
+                  <div class="otp-box">${otp}</div>
+                  <p>This OTP is valid for <strong>15 minutes</strong>.</p>
+                  <p>If you didn’t request this, please ignore this email.</p>
+                </div>
+                <div class="footer">
+                  &copy; ${new Date().getFullYear()} Peshawar Stays. All rights reserved.
+                </div>
+              </div>
+            </body>
+          </html>
+          `,
+        });
 
-      router.push("/login");
+        if (sentOtp.status === 200) {
+          toast.success("OTP sent to your email. Please verify your account.");
+          router.push(
+            `/register/${response.data.id}?email=${encodeURIComponent(
+              response.data.email
+            )}`
+          );
+        }
+      }
+
       (e.target as HTMLFormElement).reset();
     } catch (err) {
       console.log("Registration error:", err.message);

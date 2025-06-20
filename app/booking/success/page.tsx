@@ -3,11 +3,46 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Calendar, Download, Home } from "lucide-react";
+import { CheckCircle, Calendar, Download, Home, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useCurrentUser } from "@/hooks/currentUser";
 
 export default function BookingSuccessPage() {
+  const { user: currentUser, loading } = useCurrentUser();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && !currentUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">
+            You must be logged in to view this page.
+          </p>
+          <Link href="/login" className="text-blue-500 hover:underline">
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-luxury-cream">
       <div className="container mx-auto px-4 py-16">
@@ -109,10 +144,10 @@ export default function BookingSuccessPage() {
             transition={{ delay: 0.9 }}
             className="text-center"
           >
-            <Link href="/">
+            <Link href="/dashboard/customer">
               <Button variant="ghost" className="text-primary">
                 <Home className="h-4 w-4 mr-2" />
-                Back to Home
+                View Booking
               </Button>
             </Link>
           </motion.div>

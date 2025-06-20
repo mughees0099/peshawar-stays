@@ -9,8 +9,7 @@ declare global {
 
 global.mongooseCache = global.mongooseCache || { conn: null, promise: null };
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/peshawar-stays";
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");

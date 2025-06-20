@@ -48,7 +48,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify password
+    if (!user.isVerified) {
+      return NextResponse.json(
+        {
+          error:
+            "Account verification required. Please check your email for the OTP or register again.",
+        },
+
+        { status: 403 }
+      );
+    }
+
     if (!user.password) {
       return NextResponse.json(
         { error: "Invalid email or password" },

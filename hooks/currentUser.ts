@@ -11,7 +11,6 @@ export function useCurrentUser() {
         const response = await axios.get("/api/auth/me");
         setUser(response.data);
       } catch (error) {
-        console.error("Error fetching current user:", error);
         setUser(null);
       } finally {
         setLoading(false);

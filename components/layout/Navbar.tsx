@@ -8,15 +8,22 @@ import { useCurrentUser } from "@/hooks/currentUser";
 import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { se } from "date-fns/locale";
 
 export function Navbar() {
   const { user: currentUser, loading }: any = useCurrentUser();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
+    setIsLoading(true);
+    setOpen(false);
     const response = await axios.post("/api/auth/logout");
     if (response.status === 200) {
+      setIsLoading(false);
       window.location.href = "/";
     } else {
       console.error("Logout failed");
@@ -95,13 +102,43 @@ export function Navbar() {
                     priority
                   />
                 </Link>
-                <Button
-                  className="bg-red-500 hover:bg-red-600 text-white font-medium"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
+
+                <div className="p-2">
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="bg-red-500 hover:bg-red-600 text-white font-medium hover:text-white "
+                      >
+                        <LogOut className="mr-2 h-5 w-5" />
+                        <span>Logout</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-60 bg-[#1a1c23] text-white border border-gray-700">
+                      <p className="text-sm mb-4">
+                        Are you sure you want to logout?
+                      </p>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-gray-600 text-black "
+                          onClick={() => setOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={handleLogout}
+                          disabled={isLoading ? true : false}
+                        >
+                          {isLoading ? "Logging out..." : "Logout"}
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             ) : (
               <div className="hidden lg:flex items-center space-x-4">

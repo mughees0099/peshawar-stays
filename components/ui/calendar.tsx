@@ -24,9 +24,7 @@ function Calendar({
       numberOfMonths={1}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
-      onDayClick={(date, modifiers, e) => {
-        console.log("Clicked:", date, e.target);
-      }}
+      onDayClick={(date, modifiers, e) => {}}
       classNames={{
         // months: "flex justify-center ",
         month: "space-y-4",

@@ -22,18 +22,6 @@ export async function POST(req: NextRequest) {
       propertyType,
       propertyAddress,
     } = body;
-    console.log(
-      firstName,
-      lastName,
-      email,
-      phone,
-      gender,
-      password,
-      userType,
-      propertyName,
-      propertyType,
-      propertyAddress
-    );
 
     if (!firstName || !lastName || !email || !phone || !password) {
       return NextResponse.json(
@@ -85,8 +73,9 @@ export async function POST(req: NextRequest) {
       await newHost.save();
       return NextResponse.json(
         {
-          message:
-            "Host registration successful. Your account is pending approval.",
+          email: newHost.email,
+          id: newHost._id,
+          message: "Host registration successful",
         },
         { status: 201 }
       );
@@ -109,8 +98,13 @@ export async function POST(req: NextRequest) {
         role: "customer",
       });
       await newCustomer.save();
+
       return NextResponse.json(
-        { message: "Customer registration successful" },
+        {
+          email: newCustomer.email,
+          id: newCustomer._id,
+          message: "Customer registration successful",
+        },
         { status: 201 }
       );
     }

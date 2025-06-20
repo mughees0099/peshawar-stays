@@ -23,11 +23,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
   Star,
   MapPin,
-  Wifi,
-  Car,
-  Coffee,
   Waves,
   CalendarIcon,
   Users,
@@ -35,80 +40,78 @@ import {
   Share,
   ChevronLeft,
   ChevronRight,
+  Loader2,
+  Send,
+  Check,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
+import { useParams, useRouter } from "next/navigation";
+import axios from "axios";
+import { useCurrentUser } from "@/hooks/currentUser";
+import { toast } from "react-toastify";
+interface Property {
+  _id: string;
+  name: string;
+  description: string;
+  address: string;
+  pricePerNight: number;
+  propertyType:
+    | "Luxury Hotel"
+    | "Business Hotel"
+    | "Guest House"
+    | "Standard Hotel";
+  images: Array<{
+    url: string;
+    altText?: string;
+  }>;
+  amenities: string[];
+  reviews: Array<{
+    customer: string;
+    rating: number;
+    comment?: string;
+    createdAt: string;
+  }>;
+  roomDetails: Array<{
+    type: "standard" | "deluxe" | "executive" | "presidential";
+    totalRooms: number;
+    availableRooms: number;
+    pricePerNight: number;
+    amenities: string[];
+    customerCapacity: number;
+    images: Array<{
+      url?: string;
+      altText?: string;
+    }>;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+  owner: string;
+}
 
-// Mock hotel data
-const hotelData = {
-  id: 1,
-  name: "Pearl Continental Peshawar",
-  location: "University Town, Peshawar",
-  price: 15000,
-  rating: 4.8,
-  feedbacks: 324,
-  images: [
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-  ],
-  amenities: [
-    "Wifi",
-    "Parking",
-    "Restaurant",
-    "Pool",
-    "Spa",
-    "Gym",
-    "Room Service",
-  ],
-  type: "Luxury Hotel",
-  description:
-    "Experience luxury at its finest with world-class amenities and exceptional service. Located in the heart of University Town, Pearl Continental Peshawar offers elegant accommodations with modern facilities and traditional Pakistani hospitality.",
-  rooms: [
-    { type: "Standard Room", price: 12000, capacity: 2, available: 5 },
-    { type: "Deluxe Room", price: 15000, capacity: 2, available: 3 },
-    { type: "Executive Suite", price: 25000, capacity: 4, available: 2 },
-    { type: "Presidential Suite", price: 45000, capacity: 6, available: 1 },
-  ],
-  reviews: [
-    {
-      id: 1,
-      name: "Ahmed Khan",
-      rating: 5,
-      date: "2024-01-15",
-      comment:
-        "Excellent service and beautiful rooms. The staff was very helpful and the location is perfect.",
-    },
-    {
-      id: 2,
-      name: "Sarah Ali",
-      rating: 4,
-      date: "2024-01-10",
-      comment:
-        "Great hotel with good amenities. The breakfast was delicious and the pool area is lovely.",
-    },
-    {
-      id: 3,
-      name: "Muhammad Hassan",
-      rating: 5,
-      date: "2024-01-05",
-      comment:
-        "Outstanding experience! Will definitely stay here again. Highly recommended.",
-    },
-  ],
+const getRoomDisplayName = (type: string) => {
+  const roomTypes = {
+    standard: "standard",
+    deluxe: "deluxe",
+    executive: "executive",
+    presidential: "presidential",
+  };
+
+  return roomTypes[type as keyof typeof roomTypes] || type;
 };
 
 const amenityIcons = {
-  Wifi: Wifi,
-  Parking: Car,
-  Restaurant: Coffee,
-  Pool: Waves,
-  Spa: Star,
-  Gym: Users,
-  "Room Service": Coffee,
+  // Wifi: Wifi,
+  // "Free WiFi": Wifi,
+  // Parking: Car,
+  // Restaurant: Coffee,
+  // Pool: Waves,
+  // Spa: Star,
+  // Gym: Users,
+  // "Room Service": Coffee,
+  // "Air Conditioning": Waves,
+  // Breakfast: Coffee,
 };
 
 const fadeInUp = {
@@ -118,6 +121,13 @@ const fadeInUp = {
 };
 
 export default function HotelDetailPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const { user, loading: userLoading } = useCurrentUser();
+
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
@@ -126,18 +136,23 @@ export default function HotelDetailPage() {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [showCopiedAlert, setShowCopiedAlert] = useState(false);
+  const [roomImageIndexes, setRoomImageIndexes] = useState<{
+    [key: string]: number;
+  }>({});
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImages, setModalImages] = useState<
+    Array<{ url?: string; altText?: string }>
+  >([]);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
+  const [cnfrmLoading, setCnfrmLoading] = useState(false);
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === hotelData.images.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? hotelData.images.length - 1 : prev - 1
-    );
-  };
+  const [isSaved, setIsSaved] = useState<boolean>(false);
 
   const calculateTotal = () => {
     if (!checkIn || !checkOut || !selectedRoom) return 0;
@@ -145,9 +160,222 @@ export default function HotelDetailPage() {
     const nights = Math.ceil(
       (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
     );
-    const room = hotelData.rooms.find((r) => r.type === selectedRoom);
-    return nights * (room?.price || 0);
+    const room = property?.roomDetails.find(
+      (r) => getRoomDisplayName(r.type) === selectedRoom
+    );
+    return nights * (room?.pricePerNight || 0);
   };
+
+  const getNextDay = (date: Date) => {
+    const next = new Date(date);
+    next.setDate(date.getDate() + 1);
+    return next;
+  };
+
+  const setRoomImageIndex = (roomType: string, index: number) => {
+    setRoomImageIndexes((prev) => ({
+      ...prev,
+      [roomType]: index,
+    }));
+  };
+
+  const getRoomImageIndex = (roomType: string) => {
+    return roomImageIndexes[roomType] || 0;
+  };
+
+  const openImageModal = (
+    images: Array<{ url?: string; altText?: string }>,
+    startIndex = 0
+  ) => {
+    setModalImages(images);
+    setModalImageIndex(startIndex);
+    setShowImageModal(true);
+  };
+
+  const nextModalImage = () => {
+    setModalImageIndex((prev) =>
+      prev === modalImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevModalImage = () => {
+    setModalImageIndex((prev) =>
+      prev === 0 ? modalImages.length - 1 : prev - 1
+    );
+  };
+
+  const handleContinueBooking = () => {
+    if (!user) {
+      setShowLoginDialog(true);
+      return;
+    }
+    setShowBookingForm(true);
+  };
+
+  const handleShare = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      setShowCopiedAlert(true);
+      setTimeout(() => setShowCopiedAlert(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+      const textArea = document.createElement("textarea");
+      textArea.value = window.location.href;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setShowCopiedAlert(true);
+      setTimeout(() => setShowCopiedAlert(false), 2000);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user || !property) return;
+    try {
+      const response = await axios.patch("/api/auth/me", {
+        favoriteProperties: property?._id,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        email: user?.email,
+        phone: user?.phone,
+      });
+      if (response.status === 200) {
+        setIsSaved(true);
+        toast.success("Property saved to your favorites!");
+      }
+    } catch (error) {
+      toast.error("Failed to save property. Please try again.");
+      setIsSaved(false);
+    }
+  };
+
+  const handleUnSave = async () => {
+    if (!user || !property) return;
+    try {
+      const response = await axios.patch("/api/auth/me", {
+        favoriteProperties: property?._id,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        email: user?.email,
+        phone: user?.phone,
+        remove: true,
+      });
+      if (response.status === 200) {
+        toast.success("Property removed from your favorites!");
+        setIsSaved(false);
+      }
+    } catch (error) {
+      toast.error(
+        "Failed to remove property from favorites. Please try again."
+      );
+      setIsSaved(true);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!user || !property) return;
+
+    try {
+      setSubmittingReview(true);
+      await axios.patch(`/api/Property/${property._id}/reviews`, {
+        customer: user._id,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+
+      const response = await axios.get(`/api/Property/${id}`);
+      setProperty(response.data);
+
+      setReviewRating(5);
+      setReviewComment("");
+      setShowReviewForm(false);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("Failed to submit review. Please try again.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleConfirmBooking = async () => {
+    setCnfrmLoading(true);
+    const name = (document.getElementById("name") as HTMLInputElement)?.value;
+    const email = (document.getElementById("email") as HTMLInputElement)?.value;
+    const phone = (document.getElementById("phone") as HTMLInputElement)?.value;
+    const requests = (
+      document.getElementById("requests") as HTMLTextAreaElement
+    )?.value;
+
+    if (!name || !email || !phone) {
+      toast.error("please fill in all fields before confirming booking.");
+      return;
+    }
+
+    if (!property) {
+      toast.error("Property details are not available.");
+      return;
+    }
+    const selectedRoomDetails = property.roomDetails.find(
+      (r) => getRoomDisplayName(r.type) === selectedRoom
+    );
+
+    const nights = Math.ceil(
+      (checkOut!.getTime() - checkIn!.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const subtotal = calculateTotal();
+    const serviceFee = Math.round(subtotal * 0.05);
+    const totalAmount = subtotal + serviceFee;
+
+    const bookingData = {
+      property: property._id,
+      owner: property.owner._id,
+      customer: user?._id,
+      checkIn: checkIn,
+      checkOut: checkOut,
+      totalAmount: totalAmount,
+      status: "pending",
+      specialRequests: requests || null,
+      roomType: selectedRoom,
+      numberOfGuests: guests,
+    };
+
+    try {
+      const response = await axios.post("/api/booking", bookingData);
+      if (response.status === 201) {
+        toast.success("Booking request submitted successfully!");
+        setCheckIn(undefined);
+        setCheckOut(undefined);
+        setGuests("2");
+        setSelectedRoom("");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Booking submission failed");
+    } finally {
+      setCnfrmLoading(false);
+      setShowBookingForm(false);
+    }
+  };
+
+  useEffect(() => {
+    async function fetchPropertyDetails() {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/Property/${id}`);
+        setProperty(response.data);
+      } catch (error) {
+        console.error("Error fetching property details:", error);
+        setError("Failed to load property details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPropertyDetails();
+  }, [id]);
 
   useEffect(() => {
     if (checkIn && checkOut) {
@@ -158,15 +386,237 @@ export default function HotelDetailPage() {
       }
     }
   }, [checkIn, checkOut]);
+  useEffect(() => {
+    if (user && property) {
+      setIsSaved(user.favoriteProperties?.includes(property._id) || false);
+    }
+  }, [user, property]);
 
-  const getNextDay = (date: Date) => {
-    const next = new Date(date);
-    next.setDate(date.getDate() + 1);
-    return next;
+  if (loading || userLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading property details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error || "Property not found"}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const averageRating =
+    property.reviews.length > 0
+      ? property.reviews.reduce((sum, review) => sum + review.rating, 0) /
+        property.reviews.length
+      : 0;
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) =>
+      prev === property.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? property.images.length - 1 : prev - 1
+    );
   };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Copied Alert */}
+      {showCopiedAlert && (
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+          className="fixed top-4 right-4 z-50"
+        >
+          <Alert className="bg-green-500 text-white border-green-600">
+            <Check className="h-4 w-4" />
+            <AlertDescription>Link copied to clipboard!</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Login Dialog */}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Login Required</DialogTitle>
+            <DialogDescription>
+              Please log in first to continue with your booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 mt-4">
+            <Button asChild className="flex-1">
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowLoginDialog(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Dialog */}
+      <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Write a Review</DialogTitle>
+            <DialogDescription>
+              Share your experience with other travelers
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Rating</Label>
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setReviewRating(star)}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={`h-6 w-6 ${
+                        star <= reviewRating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="review-comment">Comment (Optional)</Label>
+              <Textarea
+                id="review-comment"
+                placeholder="Tell us about your experience..."
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSubmitReview}
+                disabled={submittingReview}
+                className="flex-1"
+              >
+                {submittingReview ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Submit Review
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowReviewForm(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Modal */}
+      <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+        <DialogTitle> </DialogTitle>
+        <DialogContent className="max-w-4xl w-full p-0">
+          <div className="relative">
+            <div className="relative h-96 md:h-[500px]">
+              <Image
+                src={modalImages[modalImageIndex]?.url || "/placeholder.svg"}
+                alt={
+                  modalImages[modalImageIndex]?.altText ||
+                  `Image ${modalImageIndex + 1}`
+                }
+                fill
+                className="object-contain"
+              />
+
+              {modalImages.length > 1 && (
+                <>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 shadow-lg"
+                    onClick={prevModalImage}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 shadow-lg"
+                    onClick={nextModalImage}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </motion.button>
+                </>
+              )}
+
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full">
+                {modalImageIndex + 1} / {modalImages.length}
+              </div>
+
+              {/* Close Button */}
+            </div>
+
+            {/* Thumbnail Navigation */}
+            {modalImages.length > 1 && (
+              <div className="p-4 bg-gray-50">
+                <div className="flex gap-2 overflow-x-auto justify-center">
+                  {modalImages.map((image, index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer border-2 transition-colors ${
+                        index === modalImageIndex
+                          ? "border-primary"
+                          : "border-gray-300"
+                      }`}
+                      onClick={() => setModalImageIndex(index)}
+                    >
+                      <Image
+                        src={image.url || "/placeholder.svg"}
+                        alt={image.altText || `Thumbnail ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <motion.div
@@ -176,11 +626,11 @@ export default function HotelDetailPage() {
           className="mb-6"
         >
           <Link href="/hotels" className="text-primary hover:underline">
-            ← Back to Hotels
+            ← Back to Properties
           </Link>
         </motion.div>
 
-        {/* Hotel Header */}
+        {/* Property Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -189,17 +639,25 @@ export default function HotelDetailPage() {
         >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{hotelData.name}</h1>
+              <h1 className="text-3xl font-bold mb-2">{property.name}</h1>
               <div className="flex items-center gap-4 text-muted-foreground">
                 <div className="flex items-center">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                  <span className="font-medium">{hotelData.rating}</span>
-                  <span className="ml-1">({hotelData.feedbacks} reviews)</span>
-                </div>
-                <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span>{hotelData.location}</span>
+                  <span>
+                    {property.address.length > 100
+                      ? `${property.address.slice(0, 100)}...`
+                      : property.address}
+                  </span>
                 </div>
+              </div>
+              <div className="flex items-center my-5">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                <span className="font-medium">
+                  {averageRating > 0 ? averageRating.toFixed(1) : "New"}
+                </span>
+                <span className="ml-1">
+                  ({property.reviews.length} reviews)
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -207,7 +665,7 @@ export default function HotelDetailPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleShare}>
                   <Share className="h-4 w-4 mr-2" />
                   Share
                 </Button>
@@ -216,10 +674,50 @@ export default function HotelDetailPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button variant="outline" size="sm">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
+                {isSaved ? (
+                  <Button variant="outline" size="sm" onClick={handleUnSave}>
+                    <Heart className="h-4 w-4 mr-2 fill-red-500 text-red-500" />
+                  </Button>
+                ) : (
+                  <>
+                    {user ? (
+                      user?.role === "host" || user?.role === "admin" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            user?.role === "host"
+                              ? toast.error("Hosts cannot save properties")
+                              : toast.error("Admins cannot save properties");
+                          }}
+                        >
+                          <Heart className="h-4 w-4 mr-2" />
+                          Save
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSave}
+                        >
+                          <Heart className="h-4 w-4 mr-2" />
+                          Save
+                        </Button>
+                      )
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          toast.error("Please log in to save properties");
+                        }}
+                      >
+                        <Heart className="h-4 w-4 mr-2" />
+                        Save
+                      </Button>
+                    )}
+                  </>
+                )}
               </motion.div>
             </div>
           </div>
@@ -238,40 +736,50 @@ export default function HotelDetailPage() {
               <div className="relative h-96 rounded-lg overflow-hidden shadow-lg">
                 <Image
                   src={
-                    hotelData.images[currentImageIndex] || "/placeholder.svg"
+                    property.images[currentImageIndex]?.url ||
+                    "/placeholder.svg?height=400&width=600"
                   }
-                  alt={`${hotelData.name} - Image ${currentImageIndex + 1}`}
+                  alt={
+                    property.images[currentImageIndex]?.altText ||
+                    `${property.name} - Image ${currentImageIndex + 1}`
+                  }
                   fill
-                  className="object-cover"
+                  className="object-fill"
                 />
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg"
-                  onClick={prevImage}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg"
-                  onClick={nextImage}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </motion.button>
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {hotelData.images.map((_, index) => (
+                {property.images.length > 1 && (
+                  <>
                     <motion.button
-                      key={index}
-                      whileHover={{ scale: 1.2 }}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentImageIndex ? "bg-white" : "bg-white/50"
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                    />
-                  ))}
-                </div>
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg"
+                      onClick={prevImage}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg"
+                      onClick={nextImage}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </motion.button>
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                      {property.images.map((_, index) => (
+                        <motion.button
+                          key={index}
+                          whileHover={{ scale: 1.2 }}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === currentImageIndex
+                              ? "bg-white"
+                              : "bg-white/50"
+                          }`}
+                          onClick={() => setCurrentImageIndex(index)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
 
@@ -281,9 +789,9 @@ export default function HotelDetailPage() {
               transition={{ delay: 0.6 }}
               className="mb-8"
             >
-              <h2 className="text-2xl font-bold mb-4">About this hotel</h2>
+              <h2 className="text-2xl font-bold mb-4">About this property</h2>
               <p className="text-muted-foreground leading-relaxed">
-                {hotelData.description}
+                {property.description}
               </p>
             </motion.div>
 
@@ -295,7 +803,7 @@ export default function HotelDetailPage() {
             >
               <h2 className="text-2xl font-bold mb-4">Amenities</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {hotelData.amenities.map((amenity, index) => {
+                {property.amenities.map((amenity, index) => {
                   const Icon =
                     amenityIcons[amenity as keyof typeof amenityIcons];
                   return (
@@ -307,7 +815,7 @@ export default function HotelDetailPage() {
                       viewport={{ once: true }}
                       className="flex items-center gap-2"
                     >
-                      {Icon && <Icon className="h-5 w-5 text-primary" />}
+                      {/* {Icon && <Icon className="h-5 w-5 text-primary" />} */}
                       <span>{amenity}</span>
                     </motion.div>
                   );
@@ -322,85 +830,370 @@ export default function HotelDetailPage() {
               className="mb-8"
             >
               <h2 className="text-2xl font-bold mb-4">Room Types</h2>
-              <div className="space-y-4">
-                {hotelData.rooms.map((room, index) => (
-                  <motion.div
-                    key={room.type}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <Card className="shadow-lg border-0">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-semibold">{room.type}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Up to {room.capacity} guests • {room.available}{" "}
-                              rooms available
-                            </p>
+              <div className="space-y-6">
+                {property.roomDetails.map((room, index) => {
+                  const currentRoomImageIndex = getRoomImageIndex(room.type);
+                  const roomImages =
+                    room.images?.filter((img) => img.url) || [];
+
+                  return (
+                    <motion.div
+                      key={room.type}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ scale: 1.01 }}
+                    >
+                      <Card className="shadow-lg border-0 overflow-hidden">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                          {/* Room Images */}
+                          <div className="md:col-span-1">
+                            {roomImages.length > 0 ? (
+                              <div className="relative h-48 md:h-full">
+                                <Image
+                                  src={
+                                    roomImages[currentRoomImageIndex]?.url ||
+                                    "/placeholder.svg"
+                                  }
+                                  alt={
+                                    roomImages[currentRoomImageIndex]
+                                      ?.altText ||
+                                    `${getRoomDisplayName(room.type)} image`
+                                  }
+                                  fill
+                                  className="object-cover cursor-pointer"
+                                  onClick={() =>
+                                    openImageModal(
+                                      roomImages,
+                                      currentRoomImageIndex
+                                    )
+                                  }
+                                />
+
+                                {/* Image Navigation Arrows */}
+                                {roomImages.length > 1 && (
+                                  <>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-lg"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const newIndex =
+                                          currentRoomImageIndex === 0
+                                            ? roomImages.length - 1
+                                            : currentRoomImageIndex - 1;
+                                        setRoomImageIndex(room.type, newIndex);
+                                      }}
+                                    >
+                                      <ChevronLeft className="h-3 w-3" />
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-lg"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const newIndex =
+                                          currentRoomImageIndex ===
+                                          roomImages.length - 1
+                                            ? 0
+                                            : currentRoomImageIndex + 1;
+                                        setRoomImageIndex(room.type, newIndex);
+                                      }}
+                                    >
+                                      <ChevronRight className="h-3 w-3" />
+                                    </motion.button>
+                                  </>
+                                )}
+
+                                {/* Image Counter */}
+                                {roomImages.length > 1 && (
+                                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                    {currentRoomImageIndex + 1} /{" "}
+                                    {roomImages.length}
+                                  </div>
+                                )}
+
+                                {/* View All Images Button */}
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute top-2 right-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openImageModal(
+                                      roomImages,
+                                      currentRoomImageIndex
+                                    );
+                                  }}
+                                >
+                                  View All
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="relative h-48 md:h-full bg-gray-100 flex items-center justify-center">
+                                <div className="text-center text-gray-500">
+                                  <Image
+                                    src="/placeholder.svg?height=200&width=300"
+                                    alt={`${getRoomDisplayName(
+                                      room.type
+                                    )} placeholder`}
+                                    width={300}
+                                    height={200}
+                                    className="opacity-50"
+                                  />
+                                  <p className="mt-2 text-sm">
+                                    No image available
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold">
-                              PKR {room.price.toLocaleString()}
+
+                          {/* Room Details */}
+                          <CardContent className="md:col-span-2 p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex-1">
+                                <h3 className="text-xl font-semibold mb-2">
+                                  {getRoomDisplayName(room.type)}
+                                </h3>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-4 w-4" />
+                                    Up to {room.customerCapacity} guests
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {room.availableRooms} available
+                                    </Badge>
+                                  </span>
+                                </div>
+
+                                {/* Room Amenities */}
+                                {room.amenities.length > 0 && (
+                                  <div className="mb-4">
+                                    <p className="text-sm font-medium mb-2">
+                                      Room Amenities:
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {room.amenities
+                                        .slice(0, 4)
+                                        .map((amenity) => {
+                                          const Icon =
+                                            amenityIcons[
+                                              amenity as keyof typeof amenityIcons
+                                            ];
+                                          return (
+                                            <Badge
+                                              key={amenity}
+                                              variant="secondary"
+                                              className="text-xs"
+                                            >
+                                              {Icon && (
+                                                <Icon className="h-3 w-3 mr-1" />
+                                              )}
+                                              {amenity}
+                                            </Badge>
+                                          );
+                                        })}
+                                      {room.amenities.length > 4 && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-xs"
+                                        >
+                                          +{room.amenities.length - 4} more
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Room Images Gallery Thumbnails */}
+                                {roomImages.length > 1 && (
+                                  <div className="mb-4">
+                                    <p className="text-sm font-medium mb-2">
+                                      Room Gallery:
+                                    </p>
+                                    <div className="flex gap-2 overflow-x-auto pb-2">
+                                      {roomImages.map((image, imgIndex) => (
+                                        <motion.div
+                                          key={imgIndex}
+                                          whileHover={{ scale: 1.05 }}
+                                          whileTap={{ scale: 0.95 }}
+                                          className={`relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer border-2 transition-colors ${
+                                            imgIndex === currentRoomImageIndex
+                                              ? "border-primary"
+                                              : "border-transparent"
+                                          }`}
+                                          onClick={() =>
+                                            setRoomImageIndex(
+                                              room.type,
+                                              imgIndex
+                                            )
+                                          }
+                                        >
+                                          <Image
+                                            src={
+                                              image.url ||
+                                              "/placeholder.svg?height=64&width=64"
+                                            }
+                                            alt={
+                                              image.altText ||
+                                              `${getRoomDisplayName(
+                                                room.type
+                                              )} image ${imgIndex + 1}`
+                                            }
+                                            fill
+                                            className="object-cover"
+                                          />
+                                          {imgIndex ===
+                                            currentRoomImageIndex && (
+                                            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                              <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                            </div>
+                                          )}
+                                        </motion.div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Pricing */}
+                              <div className="text-right ml-4">
+                                <div className="text-2xl font-bold text-primary">
+                                  PKR {room.pricePerNight.toLocaleString()}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  per night
+                                </div>
+                                <motion.div
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  className="mt-3"
+                                >
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedRoom(
+                                        getRoomDisplayName(room.type)
+                                      );
+                                      // Scroll to booking form
+                                      document
+                                        .querySelector(".sticky")
+                                        ?.scrollIntoView({
+                                          behavior: "smooth",
+                                        });
+                                    }}
+                                    disabled={room.availableRooms === 0}
+                                  >
+                                    {room.availableRooms === 0
+                                      ? "Sold Out"
+                                      : "Select Room"}
+                                  </Button>
+                                </motion.div>
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              per night
-                            </div>
-                          </div>
+                          </CardContent>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                      </Card>
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
 
             {/* Reviews */}
             <motion.div {...fadeInUp} transition={{ delay: 1.2 }}>
-              <h2 className="text-2xl font-bold mb-4">Guest Reviews</h2>
-              <div className="space-y-4">
-                {hotelData.reviews.map((review, index) => (
-                  <motion.div
-                    key={review.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ scale: 1.02 }}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Guest Reviews</h2>
+                {user && (
+                  <Button
+                    onClick={() => {
+                      user?.role === "host"
+                        ? toast.error("Hosts cannot write reviews")
+                        : user?.role === "admin"
+                        ? toast.error("Admins cannot write reviews")
+                        : setShowReviewForm(true);
+                    }}
+                    size="sm"
                   >
-                    <Card className="shadow-lg border-0">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-semibold">{review.name}</h4>
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.rating
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {format(new Date(review.date), "MMM dd, yyyy")}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground">
-                          {review.comment}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                    Write Review
+                  </Button>
+                )}
               </div>
+
+              {property.reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {property.reviews.slice(0, 5).map((review, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <Card className="shadow-lg border-0">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="font-semibold">
+                                {`${review.customer.firstName} ${review.customer.lastName} `}
+                              </h4>
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < review.rating
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {format(
+                                new Date(review.createdAt),
+                                "MMM dd, yyyy"
+                              )}
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-muted-foreground">
+                              {review.comment}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <Card className="shadow-lg border-0">
+                  <CardContent className="p-8 text-center">
+                    <p className="text-muted-foreground text-lg">
+                      No reviews yet.
+                    </p>
+                    {user && (
+                      <Button
+                        onClick={() => setShowReviewForm(true)}
+                        className="mt-4"
+                      >
+                        Be the first to review
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </motion.div>
           </div>
 
@@ -415,15 +1208,14 @@ export default function HotelDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Book Your Stay</span>
-                    <Badge className="bg-luxury-gold text-primary">
-                      {hotelData.type}
+                    <Badge className="bg-primary/10 text-primary">
+                      {property.propertyType}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {!showBookingForm ? (
                     <>
-                      {/* Quick Booking Form */}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <Label htmlFor="checkin">Check-in</Label>
@@ -580,11 +1372,17 @@ export default function HotelDetailPage() {
                             <SelectValue placeholder="Select room type" />
                           </SelectTrigger>
                           <SelectContent>
-                            {hotelData.rooms.map((room) => (
-                              <SelectItem key={room.type} value={room.type}>
-                                {room.type} - PKR {room.price.toLocaleString()}
-                              </SelectItem>
-                            ))}
+                            {property.roomDetails
+                              .filter((room) => room.availableRooms > 0)
+                              .map((room) => (
+                                <SelectItem
+                                  key={room.type}
+                                  value={getRoomDisplayName(room.type)}
+                                >
+                                  {getRoomDisplayName(room.type)} - PKR{" "}
+                                  {room.pricePerNight.toLocaleString()}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -616,9 +1414,15 @@ export default function HotelDetailPage() {
                         whileTap={{ scale: 0.98 }}
                       >
                         <Button
-                          className="w-full bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
+                          className="w-full"
                           size="lg"
-                          onClick={() => setShowBookingForm(true)}
+                          onClick={() => {
+                            user?.role === "host"
+                              ? toast.error("Hosts cannot book properties")
+                              : user?.role === "admin"
+                              ? toast.error("Admins cannot book properties")
+                              : handleContinueBooking();
+                          }}
                           disabled={!checkIn || !checkOut || !selectedRoom}
                         >
                           Continue to Book
@@ -627,7 +1431,7 @@ export default function HotelDetailPage() {
                     </>
                   ) : (
                     <>
-                      {/* Enhanced Booking Form */}
+                      {/* Enhanced Booking Form with Auto-filled Data */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -638,6 +1442,13 @@ export default function HotelDetailPage() {
                           <Input
                             id="name"
                             placeholder="Enter your full name"
+                            defaultValue={
+                              user?.firstName.charAt(0).toUpperCase() +
+                                user?.firstName.slice(1).toLowerCase() +
+                                "  " +
+                                user?.lastName.charAt(0).toUpperCase() +
+                                user?.lastName.slice(1).toLowerCase() || ""
+                            }
                             required
                           />
                         </div>
@@ -647,6 +1458,7 @@ export default function HotelDetailPage() {
                             id="email"
                             type="email"
                             placeholder="Enter your email"
+                            defaultValue={user?.email || ""}
                             required
                           />
                         </div>
@@ -655,6 +1467,7 @@ export default function HotelDetailPage() {
                           <Input
                             id="phone"
                             placeholder="+92 300 1234567"
+                            defaultValue={user?.phone || ""}
                             required
                           />
                         </div>
@@ -674,9 +1487,12 @@ export default function HotelDetailPage() {
                             <span>Room: {selectedRoom}</span>
                             <span>
                               PKR{" "}
-                              {hotelData.rooms
-                                .find((r) => r.type === selectedRoom)
-                                ?.price.toLocaleString()}
+                              {property.roomDetails
+                                .find(
+                                  (r) =>
+                                    getRoomDisplayName(r.type) === selectedRoom
+                                )
+                                ?.pricePerNight.toLocaleString()}
                               /night
                             </span>
                           </div>
@@ -727,47 +1543,16 @@ export default function HotelDetailPage() {
                               Back
                             </Button>
                           </motion.div>
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                          <Button
+                            className="flex-1"
+                            onClick={handleConfirmBooking}
                           >
-                            <Button
-                              className="flex-1 bg-luxury-gold hover:bg-luxury-gold/90 text-primary font-semibold"
-                              onClick={() => {
-                                // Validate form
-                                const name = (
-                                  document.getElementById(
-                                    "name"
-                                  ) as HTMLInputElement
-                                )?.value;
-                                const email = (
-                                  document.getElementById(
-                                    "email"
-                                  ) as HTMLInputElement
-                                )?.value;
-                                const phone = (
-                                  document.getElementById(
-                                    "phone"
-                                  ) as HTMLInputElement
-                                )?.value;
-
-                                if (!name || !email || !phone) {
-                                  alert("Please fill in all required fields");
-                                  return;
-                                }
-
-                                // Redirect to booking confirmation
-                                window.location.href = `/booking/confirm?hotel=${
-                                  hotelData.id
-                                }&room=${selectedRoom}&checkin=${checkIn?.toISOString()}&checkout=${checkOut?.toISOString()}&guests=${guests}&total=${
-                                  calculateTotal() +
-                                  Math.round(calculateTotal() * 0.05)
-                                }`;
-                              }}
-                            >
-                              Confirm Booking
-                            </Button>
-                          </motion.div>
+                            {cnfrmLoading ? (
+                              <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                            ) : (
+                              "Confirm Booking"
+                            )}
+                          </Button>
                         </div>
                       </motion.div>
                     </>
