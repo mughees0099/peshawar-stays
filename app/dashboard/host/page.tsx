@@ -328,7 +328,7 @@ export default function HostDashboard() {
       const error = validateFile(file);
 
       if (error) {
-        alert(error);
+        toast.error(error);
         continue;
       }
 
@@ -378,7 +378,7 @@ export default function HostDashboard() {
           ...prev,
           images: prev.images.filter((_, idx) => idx !== imageIndex),
         }));
-        alert(`Failed to upload image ${i + 1}`);
+        toast.error(`Failed to upload property image ${i + 1}`);
       }
     }
   };
@@ -397,7 +397,7 @@ export default function HostDashboard() {
       const error = validateFile(file);
 
       if (error) {
-        alert(error);
+        toast.error(error);
         continue;
       }
 
@@ -473,7 +473,7 @@ export default function HostDashboard() {
             roomDetails: updatedRoomDetails,
           };
         });
-        alert(`Failed to upload room image ${i + 1}`);
+        toast.error(`Failed to upload room image ${i + 1}`);
       }
     }
   };
@@ -614,7 +614,7 @@ export default function HostDashboard() {
       );
 
     if (hasUploadingImages) {
-      alert("Please wait for all images to finish uploading");
+      toast.error("Please wait for all images to finish uploading.");
       return;
     }
 
@@ -666,8 +666,7 @@ export default function HostDashboard() {
       // Refresh properties list
       fetchProperties();
     } catch (error) {
-      console.error("Error creating property:", error);
-      alert("Failed to create property. Please try again.");
+      toast.error("Failed to create property. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -713,11 +712,10 @@ export default function HostDashboard() {
             })
             .catch((error) => {
               console.error("Error accepting booking:", error);
-              alert("Failed to accept booking. Please try again.");
+              toast.error("Failed to accept booking. Please try again.");
             });
         } catch (error) {
-          console.error("Error accepting booking:", error);
-          alert("Failed to accept booking. Please try again.");
+          toast.error("Failed to accept booking. Please try again.");
         }
       }
     });

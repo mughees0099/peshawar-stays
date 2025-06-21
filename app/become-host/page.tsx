@@ -84,34 +84,34 @@ const fadeInUp = {
 };
 
 export default function BecomeHostPage() {
-  const [formStep, setFormStep] = useState(1);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    propertyName: "",
-    propertyType: "",
-    address: "",
-    description: "",
-    bankDetails: "",
-  });
+  // const [formStep, setFormStep] = useState(1);
+  // const [formData, setFormData] = useState({
+  //   firstName: "",
+  //   lastName: "",
+  //   email: "",
+  //   phone: "",
+  //   propertyName: "",
+  //   propertyType: "",
+  //   address: "",
+  //   description: "",
+  //   bankDetails: "",
+  // });
 
-  const handleNext = () => {
-    if (formStep < 3) setFormStep(formStep + 1);
-  };
+  // const handleNext = () => {
+  //   if (formStep < 3) setFormStep(formStep + 1);
+  // };
 
-  const handlePrev = () => {
-    if (formStep > 1) setFormStep(formStep - 1);
-  };
+  // const handlePrev = () => {
+  //   if (formStep > 1) setFormStep(formStep - 1);
+  // };
 
-  const handleSubmit = () => {
-    // Simulate form submission
-    alert(
-      "Application submitted successfully! We'll review and contact you within 24 hours."
-    );
-    window.location.href = "/dashboard/host";
-  };
+  // const handleSubmit = () => {
+  //   // Simulate form submission
+  //   alert(
+  //     "Application submitted successfully! We'll review and contact you within 24 hours."
+  //   );
+  //   window.location.href = "/dashboard/host";
+  // };
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,13 +151,9 @@ export default function BecomeHostPage() {
                 <Button
                   size="lg"
                   className="bg-luxury-gold hover:bg-luxury-gold/90 text-primary px-8 py-4 text-lg font-semibold"
-                  onClick={() =>
-                    document
-                      .getElementById("application-form")
-                      ?.scrollIntoView({ behavior: "smooth" })
-                  }
+                  onClick={() => (window.location.href = "/register?role=host")}
                 >
-                  Start Your Journey
+                  create account as a host
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
@@ -274,7 +270,7 @@ export default function BecomeHostPage() {
       </section>
 
       {/* Application Form */}
-      <section id="application-form" className="py-20 bg-white">
+      {/* <section id="application-form" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -554,7 +550,7 @@ export default function BecomeHostPage() {
             </Card>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Stats Section */}
       <section className="py-20 bg-primary">

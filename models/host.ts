@@ -70,6 +70,9 @@ const hostSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
+    imageUrl: {
+      type: String,
+    },
   },
   {
     timestamps: true,

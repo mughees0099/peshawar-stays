@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +22,8 @@ import {
   MessageSquare,
   Loader2,
   Bed,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,6 +39,14 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Booking = {
   hotelName: string;
@@ -77,7 +87,52 @@ export default function CustomerDashboard() {
   const [showBookingDetails, setShowBookingDetails] = useState<string | null>(
     null
   );
+  const [editMode, setEditMode] = useState(false);
+  const [passwordMode, setPasswordMode] = useState(false);
+  const [showPassword, setShowPassword] = useState({
+    old: false,
+    new: false,
+    confirm: false,
+  });
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    gender: "",
+    phone: "",
+    imageFile: null as File | null,
+    imageUrl: "",
+    email: "",
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordStrength, setPasswordStrength] = useState({
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSymbol: false,
+    hasMinLength: false,
+  });
+
+  const [saving, setSaving] = useState(false);
+
   const router = useRouter();
+  useEffect(() => {
+    if (currentUser) {
+      setFormData({
+        firstName: currentUser.firstName,
+        lastName: currentUser.lastName,
+        gender: currentUser.gender,
+        phone: currentUser.phone || "",
+        email: currentUser.email,
+        imageUrl: currentUser.imageUrl || "",
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (currentUser && activeTab === "bookings" && bookings.length === 0) {
@@ -267,6 +322,167 @@ export default function CustomerDashboard() {
   const handleEditProfile = () => {
     alert("Opening profile edit form...");
     // Add profile edit modal logic here
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const togglePassword = (field) => {
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const handleProfileSave = async () => {
+    if (formData.phone.length !== 11 || !/^\d{11}$/.test(formData.phone)) {
+      toast.error("Phone number must be exactly 11 digits.");
+      return;
+    }
+    if (!formData.firstName) {
+      toast.error("Please fill in your first name.");
+      return;
+    }
+    if (!formData.lastName) {
+      toast.error("Please fill in your last name.");
+      return;
+    }
+
+    setSaving(true);
+
+    let uploadedImageUrl = "";
+
+    if (formData.imageFile) {
+      const data = new FormData();
+      data.append("file", formData.imageFile);
+      data.append("upload_preset", "peshawar_stays");
+      data.append("folder", "peshawar_stays_profile_images");
+
+      try {
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_KEY}/image/upload`,
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (response.status !== 200) {
+          throw new Error("Failed to upload image");
+        }
+
+        uploadedImageUrl = response.data.secure_url;
+      } catch (error) {
+        toast.error("Image upload failed.");
+        return;
+      }
+    }
+
+    const payload = {
+      ...formData,
+      imageUrl: uploadedImageUrl || formData.imageUrl,
+    };
+
+    try {
+      const response = await axios.patch("/api/profile/user", {
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        phone: payload.phone,
+        email: payload.email,
+        imageUrl: payload.imageUrl,
+        gender: payload.gender,
+      });
+      if (response.status === 200) {
+        toast.success("Profile updated successfully!");
+        setFormData((prev) => ({
+          ...prev,
+          imageUrl: payload.imageUrl,
+        }));
+        setEditMode(false);
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
+    setEditMode(false);
+    setSaving(false);
+  };
+
+  const validatePassword = (password: string) => {
+    const result = {
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSymbol: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+      hasMinLength: password.length >= 8,
+    };
+
+    setPasswordStrength(result);
+
+    const isValid =
+      result.hasUpperCase &&
+      result.hasLowerCase &&
+      result.hasNumber &&
+      result.hasSymbol &&
+      result.hasMinLength;
+    return isValid;
+  };
+
+  const handlePasswordSave = () => {
+    if (
+      !formData.oldPassword ||
+      !formData.newPassword ||
+      !formData.confirmPassword
+    ) {
+      toast.error("Please fill in all password fields.");
+      return;
+    }
+
+    const isValid = validatePassword(formData.newPassword);
+
+    if (!isValid) {
+      toast.error("Password doesn't meet security requirements.");
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("New password and confirm password do not match.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      axios
+        .patch("/api/profile/password", {
+          oldPassword: formData.oldPassword,
+          newPassword: formData.newPassword,
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            toast.success("Password updated successfully!");
+            setPasswordMode(false);
+            setFormData((prev) => ({
+              ...prev,
+              oldPassword: "",
+              newPassword: "",
+              confirmPassword: "",
+            }));
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating password:", error);
+          toast.error(
+            error.response?.data?.error ||
+              "Failed to update password. Please try again."
+          );
+        });
+    } catch (error) {
+      toast.error("Failed to update password. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -634,6 +850,7 @@ export default function CustomerDashboard() {
             <div className="grid gap-6">
               <h2 className="text-2xl font-bold">Profile Settings</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Personal Info */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Personal Information</CardTitle>
@@ -643,104 +860,365 @@ export default function CustomerDashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center space-x-4">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src="/placeholder-user.jpg" />
-                        <AvatarFallback>
-                          {currentUser?.firstName?.[0]}
-                          {currentUser?.lastName?.[0]}
-                        </AvatarFallback>
+                      <Avatar className="h-16 w-16">
+                        {formData.imageUrl ? (
+                          <AvatarImage src={formData.imageUrl} />
+                        ) : (
+                          <AvatarFallback>
+                            {currentUser?.firstName?.charAt(0).toUpperCase()}
+                            {currentUser?.lastName?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
-                      <Button variant="outline">Change Photo</Button>
+                      {editMode && (
+                        <>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                const file = e.target.files[0];
+
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  imageFile: file,
+                                }));
+
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    imageUrl: reader.result as string,
+                                  }));
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const fileInput = document.querySelector(
+                                'input[type="file"]'
+                              ) as HTMLInputElement;
+                              fileInput.click();
+                            }}
+                          >
+                            Change Photo
+                          </Button>
+                        </>
+                      )}
                     </div>
+
+                    {/* First + Last Name */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium">
                           First Name
                         </label>
-                        <p className="text-muted-foreground">
-                          {currentUser?.firstName}
-                        </p>
+                        {editMode ? (
+                          <Input
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                          />
+                        ) : (
+                          <p className="text-muted-foreground">
+                            {formData.firstName}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm font-medium">Last Name</label>
-                        <p className="text-muted-foreground">
-                          {currentUser?.lastName}
-                        </p>
+                        {editMode ? (
+                          <Input
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                          />
+                        ) : (
+                          <p className="text-muted-foreground">
+                            {formData.lastName}
+                          </p>
+                        )}
                       </div>
                     </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Gender</label>
+                      {editMode ? (
+                        <div className="space-y-2">
+                          <Select
+                            name="gender"
+                            value={formData.gender}
+                            onValueChange={(value) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                gender: value,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select your gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">
+                          {currentUser.gender}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Email */}
                     <div>
                       <label className="text-sm font-medium">Email</label>
-                      <p className="text-muted-foreground">
-                        {currentUser?.email}
-                      </p>
+                      {editMode ? (
+                        <Input
+                          name="email"
+                          value={formData.email}
+                          disabled
+                          className="bg-gray-100 cursor-not-allowed"
+                        />
+                      ) : (
+                        <p className="text-muted-foreground">
+                          {formData.email}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Phone */}
                     <div>
                       <label className="text-sm font-medium">Phone</label>
-                      <p className="text-muted-foreground">
-                        {currentUser?.phone || "+92 300 1234567"}
-                      </p>
+                      {editMode ? (
+                        <>
+                          <Input
+                            name="phone"
+                            value={formData.phone}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (/^\d*$/.test(value)) {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  phone: value,
+                                }));
+                              }
+                            }}
+                            maxLength={11}
+                            placeholder="Enter 11-digit phone number"
+                            className={
+                              formData.phone.length !== 11
+                                ? "border-red-500"
+                                : ""
+                            }
+                          />
+                          {formData.phone.length > 0 &&
+                            formData.phone.length !== 11 && (
+                              <p className="text-sm text-red-500">
+                                Phone number must be exactly 11 digits
+                              </p>
+                            )}
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground">
+                          {formData.phone}
+                        </p>
+                      )}
                     </div>
-                    <Button onClick={handleEditProfile}>Edit Profile</Button>
+
+                    {/* Action Buttons */}
+                    {editMode ? (
+                      <div className="flex space-x-3">
+                        <Button disabled={saving} onClick={handleProfileSave}>
+                          {saving ? "Updating..." : "Update Profile"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setEditMode(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button onClick={() => setEditMode(true)}>
+                        Edit Profile
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
 
+                {/* Password Section */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Account Settings</CardTitle>
                     <CardDescription>
-                      Manage your account preferences
+                      Manage your account password
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Email Notifications</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Receive booking confirmations and updates
-                        </p>
+                    {!passwordMode ? (
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">Password</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Change your account password
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPasswordMode(true)}
+                        >
+                          Change
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          alert("Opening notification settings...")
-                        }
-                      >
-                        Manage
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Password</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Change your account password
-                        </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Old Password */}
+                        <div className="relative">
+                          <Input
+                            name="oldPassword"
+                            type={showPassword.old ? "text" : "password"}
+                            placeholder="Old Password"
+                            value={formData.oldPassword}
+                            onChange={handleChange}
+                          />
+                          <span
+                            className="absolute right-3 top-2.5 cursor-pointer"
+                            onClick={() => togglePassword("old")}
+                          >
+                            {showPassword.old ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
+                          </span>
+                        </div>
+
+                        {/* New Password */}
+                        <div className="relative">
+                          <Input
+                            name="newPassword"
+                            type={showPassword.new ? "text" : "password"}
+                            placeholder="New Password"
+                            value={formData.newPassword}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setFormData((prev) => ({
+                                ...prev,
+                                newPassword: value,
+                              }));
+                              validatePassword(value);
+                            }}
+                          />
+                          <span
+                            className="absolute right-3 top-2.5 cursor-pointer"
+                            onClick={() => togglePassword("new")}
+                          >
+                            {showPassword.new ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
+                          </span>
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs font-medium">
+                            Password must contain:
+                          </p>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                            <p
+                              className={`text-xs ${
+                                passwordStrength.hasUpperCase
+                                  ? "text-green-500"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              ✓ Uppercase letter
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                passwordStrength.hasLowerCase
+                                  ? "text-green-500"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              ✓ Lowercase letter
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                passwordStrength.hasNumber
+                                  ? "text-green-500"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              ✓ Number
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                passwordStrength.hasSymbol
+                                  ? "text-green-500"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              ✓ Symbol
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                passwordStrength.hasMinLength
+                                  ? "text-green-500"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              ✓ 8+ characters
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="relative">
+                          <Input
+                            name="confirmPassword"
+                            type={showPassword.confirm ? "text" : "password"}
+                            placeholder="Confirm New Password"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                          />
+                          <span
+                            className="absolute right-3 top-2.5 cursor-pointer"
+                            onClick={() => togglePassword("confirm")}
+                          >
+                            {showPassword.confirm ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="flex space-x-3">
+                          <Button
+                            disabled={saving}
+                            onClick={handlePasswordSave}
+                          >
+                            {saving ? "Updating..." : "Update Password"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => setPasswordMode(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => alert("Opening password change form...")}
-                      >
-                        Change
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">
-                          Two-Factor Authentication
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          Add an extra layer of security
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => alert("Opening 2FA setup...")}
-                      >
-                        Enable
-                      </Button>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

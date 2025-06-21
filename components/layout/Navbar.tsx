@@ -87,7 +87,9 @@ export function Navbar() {
                 >
                   <Image
                     src={
-                      currentUser.gender === "male"
+                      currentUser.imageUrl
+                        ? currentUser.imageUrl
+                        : currentUser.gender === "male"
                         ? "/male-avatar.jpg"
                         : currentUser.gender === "female"
                         ? "/female-avator.avif"

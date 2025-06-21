@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +26,7 @@ import {
 import Link from "next/link";
 import axios from "axios";
 import { AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { generateOTP } from "@/lib/otp";
 import { text } from "stream/consumers";
@@ -38,6 +38,16 @@ export default function RegisterPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role") || "customer";
+
+  useEffect(() => {
+    if (role === "host") {
+      setUserType("host");
+    } else {
+      setUserType("customer");
+    }
+  }, [role]);
 
   // Password validation states
   const [passwordStrength, setPasswordStrength] = useState({
@@ -160,7 +170,6 @@ export default function RegisterPage() {
       newErrors[termsField] = "You must agree to the terms";
     }
 
-    console.log("Validation errors:", newErrors);
     return newErrors;
   };
 
@@ -530,7 +539,8 @@ export default function RegisterPage() {
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
             <CardDescription>
-              Join PeshawarStays as a customer or become a host
+              Join PeshawarStays as{" "}
+              {role == "host" ? "a host" : "a customer or become a host"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -552,8 +562,14 @@ export default function RegisterPage() {
               onValueChange={(value) => setUserType(value as any)}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="customer">Customer</TabsTrigger>
+              <TabsList
+                className={`grid w-full ${
+                  role === "host" ? "grid-cols-1" : "grid-cols-2"
+                }`}
+              >
+                {!(role === "host") && (
+                  <TabsTrigger value="customer">Customer</TabsTrigger>
+                )}
                 <TabsTrigger value="host">Host</TabsTrigger>
               </TabsList>
               <form onSubmit={HandleCustomerRegistration}>

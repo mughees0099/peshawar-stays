@@ -55,6 +55,9 @@ const customerSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
+    imageUrl: {
+      type: String,
+    },
 
     favoriteProperties: [
       {

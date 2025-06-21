@@ -276,6 +276,10 @@ export default function HotelDetailPage() {
 
   const handleSubmitReview = async () => {
     if (!user || !property) return;
+    if (!reviewComment.trim()) {
+      toast.error("Please enter a comment for your review.");
+      return;
+    }
 
     try {
       setSubmittingReview(true);
@@ -292,8 +296,7 @@ export default function HotelDetailPage() {
       setReviewComment("");
       setShowReviewForm(false);
     } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Failed to submit review. Please try again.");
+      toast.error("Failed to submit review. Please try again.");
     } finally {
       setSubmittingReview(false);
     }
@@ -381,7 +384,7 @@ export default function HotelDetailPage() {
     if (checkIn && checkOut) {
       const diffInTime = checkOut.getTime() - checkIn.getTime();
       if (diffInTime <= 0) {
-        alert("Checkout date must be at least one day after check-in.");
+        toast.error("Check-out date must be after check-in date.");
         setCheckOut(undefined);
       }
     }
@@ -474,6 +477,7 @@ export default function HotelDetailPage() {
       </Dialog>
 
       {/* Review Dialog */}
+
       <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
         <DialogContent>
           <DialogHeader>
@@ -504,13 +508,14 @@ export default function HotelDetailPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="review-comment">Comment (Optional)</Label>
+              <Label htmlFor="review-comment">Comment </Label>
               <Textarea
                 id="review-comment"
                 placeholder="Tell us about your experience..."
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
                 rows={4}
+                required
               />
             </div>
             <div className="flex gap-2">
