@@ -400,7 +400,9 @@ export default function CustomerDashboard() {
           imageUrl: payload.imageUrl,
         }));
         setEditMode(false);
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     } catch (error) {
       console.error("Error updating profile:", error);
