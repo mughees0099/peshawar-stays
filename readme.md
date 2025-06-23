@@ -1,172 +1,392 @@
-# Peshawar Stays
+markdown
+🌐 Peshawar Stays
 
-A modern, full-stack hotel and property booking platform for Peshawar, built with Next.js, TypeScript, MongoDB, and Tailwind CSS. The platform supports user authentication, property management, bookings, reviews, and an admin dashboard.
 
----
 
-## Table of Contents
+A modern platform for discovering and booking accommodations in Peshawar.
 
+Find your perfect stay with ease!
+
+![License](https://img.shields.io/github/license/mughees0099/peshawar-stays)
+![GitHub stars](https://img.shields.io/github/stars/mughees0099/peshawar-stays?style=social)
+![GitHub forks](https://img.shields.io/github/forks/mughees0099/peshawar-stays?style=social)
+![GitHub issues](https://img.shields.io/github/issues/mughees0099/peshawar-stays)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/mughees0099/peshawar-stays)
+![GitHub last commit](https://img.shields.io/github/last-commit/mughees0099/peshawar-stays)
+
+![JavaScript](https://img.shields.io/badge/javascript-%23F7DF1E.svg?style=for-the-badge&logo=javascript&logoColor=black)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![NodeJS](https://img.shields.io/badge/node.js-%2343853D.svg?style=for-the-badge&logo=node.js&logoColor=white)
+![Expressjs](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
+![MongoDB](https://img.shields.io/badge/mongodb-%234EA94B.svg?style=for-the-badge&logo=mongodb&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
+![MUI](https://img.shields.io/badge/MUI-%23007FFF.svg?style=for-the-badge&logo=mui&logoColor=white)
+
+📋 Table of Contents
+
+
+
+- [About](#about)
 - [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Folder Structure](#folder-structure)
-- [Setup & Installation](#setup--installation)
-- [Environment Variables](#environment-variables)
-- [Available Scripts](#available-scripts)
-- [API Overview](#api-overview)
+- [Demo](#demo)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Project Structure](#project-structure)
 - [Contributing](#contributing)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [FAQ](#faq)
 - [License](#license)
+- [Support](#support)
+- [Acknowledgments](#acknowledgments)
 
----
+About
 
-## Features
 
-- **User Authentication:** Register, login, logout, password reset, JWT-based sessions, OTP verification.
-- **Role-Based Dashboards:** Separate dashboards for Customers, Hosts, and Admins.
-- **Property Listings:** Add, edit, delete, and view hotel/property listings with images, amenities, and pricing.
-- **Booking System:** Book properties, view booking history, cancel bookings.
-- **Admin Panel:** Manage users, properties, and bookings; view analytics and reports.
-- **Reviews & Ratings:** Users can leave reviews and ratings for properties.
-- **Responsive UI:** Mobile-first design using Tailwind CSS and shadcn/ui.
-- **Email Notifications:** Registration, booking confirmations, and password reset via Nodemailer.
-- **Data Visualization:** Charts and analytics for admins using Chart.js.
-- **Security:** Password hashing (bcrypt), JWT authentication, input validation.
-- **Modern UI/UX:** Animations (Framer Motion), icons (Lucide), notifications (React Toastify, SweetAlert2).
 
----
+Peshawar Stays is a web application designed to simplify the process of finding and booking accommodations in Peshawar, Pakistan. This project aims to provide a user-friendly platform for both travelers and property owners. Travelers can easily search for hotels, guesthouses, and other lodging options based on their preferences, while property owners can list their spaces and manage bookings efficiently.
 
-## Tech Stack
+The application addresses the need for a centralized and modern accommodation booking platform in Peshawar. It leverages modern web technologies such as React for the frontend, Node.js with Express.js for the backend, and MongoDB for the database. Key features include user authentication, property listing management, search and filtering, booking management, and secure payment integration (future enhancement).
 
-- **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS, shadcn/ui, Framer Motion, Lucide Icons
-- **Backend:** Next.js API routes, Node.js, TypeScript
-- **Database:** MongoDB (Mongoose ODM)
-- **Authentication:** JWT, bcrypt
-- **Email:** Nodemailer
-- **State Management:** React Context, custom hooks
-- **Other:** Chart.js, React Toastify, SweetAlert2, Axios
+Peshawar Stays distinguishes itself by focusing on the specific needs of the Peshawar market, offering a localized experience with tailored features. It aims to bridge the gap between travelers seeking convenient lodging options and local property owners looking to expand their reach.
 
----
+✨ Features
 
-## Folder Structure
 
-```
-.
-├── app/                # Next.js app directory (pages, layouts, API routes)
-│   ├── api/            # API route handlers (auth, booking, profile, etc.)
-│   ├── dashboard/      # Dashboards for Customer, Host, Admin
-│   ├── hotels/         # Hotel listing pages
-│   ├── hotel/          # Individual hotel details
-│   ├── login/          # Login page
-│   ├── register/       # Registration page
-│   ├── forgot-password/ # Password reset pages
-│   ├── verify-otp/     # OTP verification pages
-│   ├── profile/        # User profile pages
-│   └── ...             # Other feature pages
-├── components/         # Reusable UI components (buttons, cards, dialogs, etc.)
-├── constants/          # Application-wide constants
-├── context/            # React context providers (e.g., AuthContext)
-├── hooks/              # Custom React hooks (e.g., useAuth, useUser)
-├── lib/                # Utility libraries (db, mailer, otp, etc.)
-├── middleware/         # Custom Next.js middleware (e.g., auth checks)
-├── models/             # Mongoose models (User, Property, Booking, Review, etc.)
-├── public/             # Static assets (images, favicon, etc.)
-├── styles/             # Global and component styles (Tailwind, custom CSS)
-├── types/              # TypeScript type definitions and interfaces
-├── utils/              # Helper functions and utilities
-├── .env.local          # Environment variables
-├── tailwind.config.ts  # Tailwind CSS configuration
-├── package.json        # Project metadata and scripts
-└── ...
-```
 
----
+- 🎯 Property Search: Search for accommodations based on location, price, amenities, and more.
+- ⚡ Fast Performance: Optimized React frontend and efficient backend APIs for a smooth user experience.
+- 🔒 Secure Authentication: JWT-based authentication ensures secure user accounts and data protection.
+- 🎨 Modern UI: User-friendly interface built with React and Material UI (MUI).
+- 📱 Responsive Design: Adapts seamlessly to different screen sizes and devices.
+- 🛠️ Property Management: Property owners can easily add, edit, and manage their listings.
+- 🛎️ Booking Management: Users can create, view, and manage their bookings.
 
-## Setup & Installation
+🎬 Demo
 
-### 1. Clone the repository
 
-```sh
-git clone https://github.com/your-username/peshawar-stays.git
+
+🔗 Live Demo: [https://peshawar-stays.vercel.app/](https://peshawar-stays.vercel.app/)
+
+Screenshots
+
+![Main Interface](https://i.imgur.com/Q5G6u8v.png)
+Main search interface showing available accommodations
+
+![Property Details](https://i.imgur.com/62g8W5L.png)
+Detailed view of a specific property with images and descriptions
+
+![Booking Confirmation](https://i.imgur.com/U071fFw.png)
+Booking confirmation page with booking details
+
+🚀 Quick Start
+
+
+
+Clone and run in 3 steps:
+
+bash
+git clone https://github.com/mughees0099/peshawar-stays.git
 cd peshawar-stays
-```
+npm install && npm start
 
-### 2. Install dependencies
 
-```sh
-pnpm install
-```
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-### 3. Configure environment variables
+📦 Installation
 
-Create a `.env.local` file in the root directory:
 
-```
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-EMAIL_USER=your_email_address
-EMAIL_PASS=your_email_password
-```
 
-### 4. Run the development server
+Prerequisites
 
-```sh
-pnpm dev
-```
+- Node.js 18+ and npm
+- Git
+- MongoDB instance (local or cloud)
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
+Option 1: From Source
 
----
 
-## Environment Variables
+bash
+Clone repository
 
-| Variable    | Description                       |
-| ----------- | --------------------------------- |
-| MONGODB_URI | MongoDB connection string         |
-| JWT_SECRET  | Secret key for JWT authentication |
-| EMAIL_USER  | Email address for Nodemailer      |
-| EMAIL_PASS  | Email password for Nodemailer     |
 
----
+git clone https://github.com/mughees0099/peshawar-stays.git
+cd peshawar-stays
 
-## Available Scripts
+Install dependencies
 
-- `pnpm dev` — Start the development server
-- `pnpm build` — Build for production
-- `pnpm start` — Start the production server
-- `pnpm lint` — Lint the codebase
 
----
+npm install
 
-## API Overview
+Start development server
 
-### Authentication
 
-- `POST /api/auth/register` — Register a new user (with OTP verification)
-- `POST /api/auth/login` — Login and receive JWT token
-- `POST /api/auth/forgot-password` — Request password reset (email OTP)
-- `POST /api/auth/reset-password` — Reset password with OTP
+npm run dev
 
-### Properties
 
-- `GET /api/properties` — List all properties
-- `POST /api/properties` — Add new property (Host/Admin)
-- `PUT /api/properties/:id` — Edit property
-- `DELETE /api/properties/:id` — Delete property
+Option 2: Docker (Coming Soon)
 
-### Bookings
+bash
+docker run -p 3000:3000 mughees0099/peshawar-stays
 
-- `POST /api/bookings` — Create a booking
-- `GET /api/bookings` — Get user bookings
-- `DELETE /api/bookings/:id` — Cancel booking
 
-### Reviews
+💻 Usage
 
-- `POST /api/reviews` — Add a review
-- `GET /api/reviews/:propertyId` — Get reviews for a property
 
-### Admin
 
-- `GET /api/admin/users` — List all users
-- `GET /api/admin/bookings` — List all bookings
-- `GET /api/admin/properties` — List all properties
+Basic Usage
 
----
+After installation, run the development server:
+
+bash
+npm run dev
+``
+
+This will start the frontend and backend servers. Access the application in your browser at http://localhost:3000.
+
+API Endpoints Example
+
+Example using axios to fetch properties:
+
+javascript
+import axios from 'axios';
+
+const fetchProperties = async () => {
+  try {
+    const response = await axios.get('/api/properties');
+    console.log(response.data);
+  } catch (error) {
+    console.error('Error fetching properties:', error);
+  }
+};
+
+fetchProperties();
+
+
+⚙️ Configuration
+
+
+
+Environment Variables
+
+Create a .env file in the root directory:
+
+env
+Database
+
+
+MONGO_URI=mongodb://localhost:27017/peshawarstays
+
+JWT Secret
+
+
+JWT_SECRET=your_secret_key_here
+
+Server
+
+
+PORT=3000
+NODE_ENV=development
+
+
+Configuration File (Backend)
+
+The backend server can be further configured via environment variables. For example, setting the PORT variable will change the port the server listens on.
+
+📁 Project Structure
+
+
+
+
+peshawar-stays/
+├── 📁 client/          # React frontend
+│   ├── 📁 src/
+│   │   ├── 📁 components/          # Reusable UI components
+│   │   ├── 📁 pages/              # Application pages
+│   │   ├── 📁 styles/             # CSS/styling files
+│   │   └── 📄 App.js            # Application entry point
+│   ├── 📄 package.json           # Frontend dependencies
+│   └── 📄 README.md
+├── 📁 server/          # Node.js/Express backend
+│   ├── 📁 models/           # Mongoose models
+│   ├── 📁 routes/           # API routes
+│   ├── 📁 controllers/      # Route handlers
+│   ├── 📁 config/          # Configuration files
+│   ├── 📄 server.js        # Backend entry point
+│   └── 📄 package.json       # Backend dependencies
+├── 📄 .env.example           # Environment variables template
+├── 📄 .gitignore             # Git ignore rules
+├── 📄 package.json           # Project dependencies
+├── 📄 README.md              # Project documentation
+└── 📄 LICENSE                # License file
+
+
+🤝 Contributing
+
+
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) (Coming Soon) for details.
+
+Quick Contribution Steps
+
+🍴 Fork the repository
+
+🌟 Create your feature branch (git checkout -b feature/AmazingFeature)
+
+✅ Commit your changes (git commit -m 'Add some AmazingFeature')
+
+📤 Push to the branch (git push origin feature/AmazingFeature)
+
+🔃 Open a Pull Request
+
+
+Development Setup
+
+bash
+Fork and clone the repo
+
+
+git clone https://github.com/yourusername/peshawar-stays.git
+
+Install dependencies (both client and server)
+
+
+cd peshawar-stays/client && npm install
+cd ../server && npm install
+
+Create a new branch
+
+
+git checkout -b feature/your-feature-name
+
+Make your changes and test
+
+
+Start the client and server in separate terminals
+
+
+cd peshawar-stays/client && npm start
+cd ../server && npm run dev
+
+Commit and push
+
+
+git commit -m "Description of changes"
+git push origin feature/your-feature-name
+
+
+Code Style
+
+- Follow existing code conventions
+- Run npm run lint before committing (if linting is set up)
+- Add tests for new features
+- Update documentation as needed
+
+Testing
+
+
+
+Running Tests
+
+bash
+Client-side tests (if applicable - to be implemented)
+
+
+cd client
+npm test
+
+Server-side tests (to be implemented)
+
+
+cd server
+npm test
+
+
+Deployment
+
+
+
+Deployment with Vercel
+
+
+The client application is designed to be easily deployed with Vercel:
+
+Push your code to a GitHub repository.
+
+Import the project into Vercel.
+
+Vercel will automatically detect the React application and deploy it.
+
+
+Deployment with Netlify
+
+
+The client application can also be deployed with Netlify:
+
+Push your code to a GitHub repository.
+
+Import the project into Netlify.
+
+Netlify will automatically detect the React application and deploy it.
+
+
+Deploying the Backend
+
+
+The backend can be deployed to platforms like Heroku, AWS, or Google Cloud.
+Ensure that the environment variables are correctly configured on the deployment platform.
+
+FAQ
+
+
+
+Q: How do I report a bug?
+
+A: Please open an issue on GitHub with a detailed description of the bug and steps to reproduce it.
+
+Q: How can I contribute to the project?
+
+A: See the [Contributing Guide](CONTRIBUTING.md) (Coming Soon) for details on how to contribute.
+
+Q: What are the technologies used in this project?
+
+A: This project uses React, Node.js, Express.js, and MongoDB.
+
+📄 License
+
+
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+License Summary
+
+- ✅ Commercial use
+- ✅ Modification
+- ✅ Distribution
+- ✅ Private use
+- ❌ Liability
+- ❌ Warranty
+
+💬 Support
+
+
+
+- 📧 Email: mughees0099@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/mughees0099/peshawar-stays/issues)
+- 📖 Documentation: [Full Documentation](https://documenter.getpostman.com/view/20770628/2s93XzJj6F)
+
+🙏 Acknowledgments
+
+
+
+- 🎨 UI Design: Material UI
+- 📚 Libraries used:
+- [React](https://reactjs.org/) - Frontend framework
+- [Node.js](https://nodejs.org/en/) - Backend runtime environment
+- [Express.js](https://expressjs.com/) - Backend framework
+- [MongoDB](https://www.mongodb.com/) - Database
+- 👥 Contributors: Thanks to all [contributors](https://github.com/mughees0099/peshawar-stays/graphs/contributors)
+- 🌟 Special thanks: To the open-source community for providing valuable resources and libraries.
+``
