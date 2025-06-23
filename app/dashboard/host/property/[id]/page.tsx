@@ -45,6 +45,8 @@ import Image from "next/image";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { useCurrentUser } from "@/hooks/currentUser";
+import Link from "next/link";
 
 const AMENITIES_OPTIONS = [
   "WiFi",
@@ -128,6 +130,7 @@ export default function PropertyDetailsPage() {
   const [uploadingImages, setUploadingImages] = useState<Set<string>>(
     new Set()
   );
+  const { user: currentUser, loading: userLoading } = useCurrentUser();
   const [newRoom, setNewRoom] = useState<RoomDetail>({
     type: "",
     totalRooms: 0,
@@ -660,6 +663,49 @@ export default function PropertyDetailsPage() {
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p>Loading property details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userLoading && !currentUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">
+            You must be logged in to view this page.
+          </p>
+          <Link href="/login" className="text-blue-500 hover:underline">
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentUser && currentUser.role !== "host") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">
+            You do not have permission to access this page.
+          </p>
+          <Link href="/" className="text-blue-500 hover:underline">
+            Go to Home
+          </Link>
         </div>
       </div>
     );
