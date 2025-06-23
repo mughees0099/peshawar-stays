@@ -45,6 +45,7 @@ import {
   X,
   Upload,
   Trash2,
+  EyeOff,
 } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
@@ -175,6 +176,35 @@ export default function HostDashboard() {
   const [availableRooms, setAvailableRooms] = useState(0);
   const [occupancyRate, setOccupancyRate] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [passwordMode, setPasswordMode] = useState(false);
+  const [showPassword, setShowPassword] = useState({
+    old: false,
+    new: false,
+    confirm: false,
+  });
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    gender: "",
+    phone: "",
+    imageFile: null as File | null,
+    imageUrl: "",
+    email: "",
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordStrength, setPasswordStrength] = useState({
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSymbol: false,
+    hasMinLength: false,
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const router = useRouter();
 
   // Fetch properties and bookings when user is available
@@ -182,6 +212,20 @@ export default function HostDashboard() {
     if (currentUser?._id) {
       fetchBookings();
       fetchProperties();
+    }
+    if (currentUser) {
+      setFormData({
+        firstName: currentUser.firstName || "",
+        lastName: currentUser.lastName || "",
+        gender: currentUser.gender || "",
+        phone: currentUser.phone || "",
+        imageFile: null,
+        email: currentUser.email || "",
+        imageUrl: currentUser.imageUrl || "",
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     }
   }, [currentUser]);
 
@@ -271,7 +315,9 @@ export default function HostDashboard() {
     },
     {
       title: "Total Properties",
-      value: properties.length.toString(),
+      value: properties
+        .filter((p) => p.isApproved === "approved")
+        .length.toString(),
       change: "+2",
       icon: Home,
       color: "text-blue-600",
@@ -748,6 +794,171 @@ export default function HostDashboard() {
         }
       }
     });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const togglePassword = (field) => {
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const handleProfileSave = async () => {
+    if (formData.phone.length !== 11 || !/^\d{11}$/.test(formData.phone)) {
+      toast.error("Phone number must be exactly 11 digits.");
+      return;
+    }
+    if (!formData.firstName) {
+      toast.error("Please fill in your first name.");
+      return;
+    }
+    if (!formData.lastName) {
+      toast.error("Please fill in your last name.");
+      return;
+    }
+
+    setSaving(true);
+
+    let uploadedImageUrl = "";
+
+    if (formData.imageFile) {
+      const data = new FormData();
+      data.append("file", formData.imageFile);
+      data.append("upload_preset", "peshawar_stays");
+      data.append("folder", "peshawar_stays_profile_images");
+
+      try {
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_KEY}/image/upload`,
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (response.status !== 200) {
+          throw new Error("Failed to upload image");
+        }
+
+        uploadedImageUrl = response.data.secure_url;
+      } catch (error) {
+        toast.error("Image upload failed.");
+        return;
+      }
+    }
+
+    const payload = {
+      ...formData,
+      imageUrl: uploadedImageUrl || formData.imageUrl,
+    };
+
+    try {
+      const response = await axios.patch("/api/profile/user", {
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        phone: payload.phone,
+        email: payload.email,
+        imageUrl: payload.imageUrl,
+        gender: payload.gender,
+      });
+      if (response.status === 200) {
+        toast.success("Profile updated successfully!");
+        setFormData((prev) => ({
+          ...prev,
+          imageUrl: payload.imageUrl,
+        }));
+        setEditMode(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
+    setEditMode(false);
+    setSaving(false);
+  };
+
+  const validatePassword = (password: string) => {
+    const result = {
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSymbol: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+      hasMinLength: password.length >= 8,
+    };
+
+    setPasswordStrength(result);
+
+    const isValid =
+      result.hasUpperCase &&
+      result.hasLowerCase &&
+      result.hasNumber &&
+      result.hasSymbol &&
+      result.hasMinLength;
+    return isValid;
+  };
+
+  const handlePasswordSave = () => {
+    if (
+      !formData.oldPassword ||
+      !formData.newPassword ||
+      !formData.confirmPassword
+    ) {
+      toast.error("Please fill in all password fields.");
+      return;
+    }
+
+    const isValid = validatePassword(formData.newPassword);
+
+    if (!isValid) {
+      toast.error("Password doesn't meet security requirements.");
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("New password and confirm password do not match.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      axios
+        .patch("/api/profile/password", {
+          oldPassword: formData.oldPassword,
+          newPassword: formData.newPassword,
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            toast.success("Password updated successfully!");
+            setPasswordMode(false);
+            setFormData((prev) => ({
+              ...prev,
+              oldPassword: "",
+              newPassword: "",
+              confirmPassword: "",
+            }));
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating password:", error);
+          toast.error(
+            error.response?.data?.error ||
+              "Failed to update password. Please try again."
+          );
+        });
+    } catch (error) {
+      toast.error("Failed to update password. Please try again.");
+    }
+    setSaving(false);
   };
 
   const filteredBookings = recentBookings.filter((booking) => {
@@ -1457,24 +1668,6 @@ export default function HostDashboard() {
                   </Button>
                 </CardContent>
               </Card>
-
-              {/* <Card className="border-0 shadow-lg">
-                <CardContent className="p-6 text-center">
-                  <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Eye className="h-8 w-8 text-purple-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    View Analytics
-                  </h3>
-                  <p className="text-gray-600 mb-4">Track your performance</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => alert("Analytics feature coming soon!")}
-                  >
-                    View Reports
-                  </Button>
-                </CardContent>
-              </Card> */}
             </div>
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1579,40 +1772,42 @@ export default function HostDashboard() {
                             : 0;
 
                         return (
-                          <div
-                            key={property._id}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Image
-                                src={
-                                  property.images?.[0]?.url ||
-                                  "/placeholder.svg?height=50&width=50" ||
-                                  "/placeholder.svg"
-                                }
-                                alt={property.name}
-                                width={50}
-                                height={50}
-                                className="rounded-lg object-cover"
-                              />
-                              <div>
-                                <p className="font-medium">{property.name}</p>
-                                <p className="text-sm text-gray-600">
-                                  {occupancy}% occupancy • {totalRooms} rooms
-                                </p>
+                          property.isApproved === "approved" && (
+                            <div
+                              key={property._id}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <Image
+                                  src={
+                                    property.images?.[0]?.url ||
+                                    "/placeholder.svg?height=50&width=50" ||
+                                    "/placeholder.svg"
+                                  }
+                                  alt={property.name}
+                                  width={50}
+                                  height={50}
+                                  className="rounded-lg object-cover"
+                                />
+                                <div>
+                                  <p className="font-medium">{property.name}</p>
+                                  <p className="text-sm text-gray-600">
+                                    {occupancy}% occupancy • {totalRooms} rooms
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setActiveTab("properties")}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setActiveTab("properties")}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </div>
-                          </div>
+                          )
                         );
                       })
                     ) : (
@@ -1823,8 +2018,16 @@ export default function HostDashboard() {
                                       : property.description}
                                   </p>
                                 </div>
-                                <Badge className="bg-green-100 text-green-800">
-                                  Active
+                                <Badge
+                                  className={
+                                    property.isApproved === "approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : property.isApproved === "pending"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
+                                  }
+                                >
+                                  {property.isApproved}
                                 </Badge>
                               </div>
 
@@ -2106,99 +2309,362 @@ export default function HostDashboard() {
           <TabsContent value="settings" className="space-y-6">
             <h2 className="text-2xl font-bold">Account Settings</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-lg">
+              <Card>
                 <CardHeader>
-                  <CardTitle>Host Information</CardTitle>
+                  <CardTitle>Personal Information</CardTitle>
                   <CardDescription>
-                    Update your host profile and business details
+                    Update your personal details
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src="/placeholder.svg?height=80&width=80" />
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-lg">
-                        {currentUser?.firstName?.[0]}
-                        {currentUser?.lastName?.[0]}
-                      </AvatarFallback>
+                    <Avatar className="h-16 w-16">
+                      {formData.imageUrl ? (
+                        <AvatarImage src={formData.imageUrl} />
+                      ) : (
+                        <AvatarFallback>
+                          {currentUser?.firstName?.charAt(0).toUpperCase()}
+                          {currentUser?.lastName?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
-                    <Button variant="outline">Change Photo</Button>
+                    {editMode && (
+                      <>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const file = e.target.files[0];
+
+                              setFormData((prev) => ({
+                                ...prev,
+                                imageFile: file,
+                              }));
+
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  imageUrl: reader.result as string,
+                                }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const fileInput = document.querySelector(
+                              'input[type="file"]'
+                            ) as HTMLInputElement;
+                            fileInput.click();
+                          }}
+                        >
+                          Change Photo
+                        </Button>
+                      </>
+                    )}
                   </div>
-                  <div className="space-y-3">
+
+                  {/* First + Last Name */}
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium">Full Name</Label>
-                      <p className="text-gray-600">
-                        {currentUser?.firstName} {currentUser?.lastName}
+                      <label className="text-sm font-medium">First Name</label>
+                      {editMode ? (
+                        <Input
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                        />
+                      ) : (
+                        <p className="text-muted-foreground">
+                          {formData.firstName}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Last Name</label>
+                      {editMode ? (
+                        <Input
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                        />
+                      ) : (
+                        <p className="text-muted-foreground">
+                          {formData.lastName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Gender</label>
+                    {editMode ? (
+                      <div className="space-y-2">
+                        <Select
+                          name="gender"
+                          value={formData.gender}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              gender: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select your gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">
+                        {currentUser.gender}
                       </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Contact Email
-                      </Label>
-                      <p className="text-gray-600">{currentUser?.email}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Phone Number
-                      </Label>
-                      <p className="text-gray-600">+92 300 1234567</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Business License
-                      </Label>
-                      <p className="text-gray-600">Verified ✓</p>
-                    </div>
+                    )}
                   </div>
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => alert("Opening profile edit form...")}
-                  >
-                    Edit Profile
-                  </Button>
+
+                  {/* Email */}
+                  <div>
+                    <label className="text-sm font-medium">Email</label>
+                    {editMode ? (
+                      <Input
+                        name="email"
+                        value={formData.email}
+                        disabled
+                        className="bg-gray-100 cursor-not-allowed"
+                      />
+                    ) : (
+                      <p className="text-muted-foreground">{formData.email}</p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="text-sm font-medium">Phone</label>
+                    {editMode ? (
+                      <>
+                        <Input
+                          name="phone"
+                          value={formData.phone}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                phone: value,
+                              }));
+                            }
+                          }}
+                          maxLength={11}
+                          placeholder="Enter 11-digit phone number"
+                          className={
+                            formData.phone.length !== 11 ? "border-red-500" : ""
+                          }
+                        />
+                        {formData.phone.length > 0 &&
+                          formData.phone.length !== 11 && (
+                            <p className="text-sm text-red-500">
+                              Phone number must be exactly 11 digits
+                            </p>
+                          )}
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground">{formData.phone}</p>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  {editMode ? (
+                    <div className="flex space-x-3">
+                      <Button disabled={saving} onClick={handleProfileSave}>
+                        {saving ? "Updating..." : "Update Profile"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => setEditMode(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => setEditMode(true)}>
+                      Edit Profile
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg">
+              <Card>
                 <CardHeader>
-                  <CardTitle>Payment & Banking</CardTitle>
+                  <CardTitle>Account Settings</CardTitle>
                   <CardDescription>
-                    Manage your payment information and banking details
+                    Manage your account password
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Bank Account
-                      </Label>
-                      <p className="text-gray-600">****1234 - HBL Bank</p>
+                  {!passwordMode ? (
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-medium">Password</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Change your account password
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPasswordMode(true)}
+                      >
+                        Change
+                      </Button>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Tax Information
-                      </Label>
-                      <p className="text-gray-600">NTN: 1234567-8</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Old Password */}
+                      <div className="relative">
+                        <Input
+                          name="oldPassword"
+                          type={showPassword.old ? "text" : "password"}
+                          placeholder="Old Password"
+                          value={formData.oldPassword}
+                          onChange={handleChange}
+                        />
+                        <span
+                          className="absolute right-3 top-2.5 cursor-pointer"
+                          onClick={() => togglePassword("old")}
+                        >
+                          {showPassword.old ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </span>
+                      </div>
+
+                      {/* New Password */}
+                      <div className="relative">
+                        <Input
+                          name="newPassword"
+                          type={showPassword.new ? "text" : "password"}
+                          placeholder="New Password"
+                          value={formData.newPassword}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              newPassword: value,
+                            }));
+                            validatePassword(value);
+                          }}
+                        />
+                        <span
+                          className="absolute right-3 top-2.5 cursor-pointer"
+                          onClick={() => togglePassword("new")}
+                        >
+                          {showPassword.new ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </span>
+                      </div>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs font-medium">
+                          Password must contain:
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                          <p
+                            className={`text-xs ${
+                              passwordStrength.hasUpperCase
+                                ? "text-green-500"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            ✓ Uppercase letter
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              passwordStrength.hasLowerCase
+                                ? "text-green-500"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            ✓ Lowercase letter
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              passwordStrength.hasNumber
+                                ? "text-green-500"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            ✓ Number
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              passwordStrength.hasSymbol
+                                ? "text-green-500"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            ✓ Symbol
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              passwordStrength.hasMinLength
+                                ? "text-green-500"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            ✓ 8+ characters
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div className="relative">
+                        <Input
+                          name="confirmPassword"
+                          type={showPassword.confirm ? "text" : "password"}
+                          placeholder="Confirm New Password"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                        />
+                        <span
+                          className="absolute right-3 top-2.5 cursor-pointer"
+                          onClick={() => togglePassword("confirm")}
+                        >
+                          {showPassword.confirm ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </span>
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <Button disabled={saving} onClick={handlePasswordSave}>
+                          {saving ? "Updating..." : "Update Password"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setPasswordMode(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Payment Schedule
-                      </Label>
-                      <p className="text-gray-600">Weekly transfers</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">
-                        Commission Rate
-                      </Label>
-                      <p className="text-gray-600">5% per booking</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => alert("Opening payment settings...")}
-                  >
-                    Update Payment Info
-                  </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>

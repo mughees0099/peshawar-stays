@@ -121,11 +121,12 @@ export default function CustomerDashboard() {
   useEffect(() => {
     if (currentUser) {
       setFormData({
-        firstName: currentUser.firstName,
-        lastName: currentUser.lastName,
-        gender: currentUser.gender,
+        firstName: currentUser.firstName || "",
+        lastName: currentUser.lastName || "",
+        gender: currentUser.gender || "",
         phone: currentUser.phone || "",
-        email: currentUser.email,
+        imageFile: null,
+        email: currentUser.email || "",
         imageUrl: currentUser.imageUrl || "",
         oldPassword: "",
         newPassword: "",

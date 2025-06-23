@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Customer from "@/models/customer";
 import jwt from "jsonwebtoken";
+import Admin from "@/models/admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,11 +27,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let customer, host;
+    let customer, host, admin;
     try {
-      [customer, host] = await Promise.all([
+      [customer, host, admin] = await Promise.all([
         Customer.findOne({ email }).lean(),
         Host.findOne({ email }).lean(),
+        Admin.findOne({ email }).lean(),
       ]);
     } catch (dbError) {
       return NextResponse.json(
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user: any = customer || host;
+    const user: any = customer || host || admin;
 
     if (!user) {
       return NextResponse.json(
@@ -83,7 +85,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userType = user.userType || (customer ? "customer" : "host");
+    const userType =
+      user.userType || (customer ? "customer" : host ? "host" : "admin");
 
     let token;
     try {

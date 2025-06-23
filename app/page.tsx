@@ -171,6 +171,7 @@ export default function HomePage() {
             alt="Luxury Hotel Background"
             fill
             className="object-cover opacity-30"
+            priority
           />
         </div>
         <div className="container mx-auto px-4 relative z-10">

@@ -4,6 +4,7 @@ import connectDB from "@/lib/db";
 import Customer from "@/models/customer";
 import Host from "@/models/host";
 import bcrypt from "bcrypt";
+import Admin from "@/models/admin";
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,8 +50,9 @@ export async function GET(req: NextRequest) {
 
     const customer = await Customer.findOne({ email }).lean();
     const host = await Host.findOne({ email }).lean();
+    const admin = await Admin.findOne({ email }).lean();
 
-    if (!customer && !host) {
+    if (!customer && !host && !admin) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     if (customer) {
@@ -59,7 +61,10 @@ export async function GET(req: NextRequest) {
     if (host) {
       delete host.password;
     }
-    return NextResponse.json(customer || host);
+    if (admin) {
+      delete admin.password;
+    }
+    return NextResponse.json(customer || host || admin);
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },

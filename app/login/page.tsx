@@ -78,13 +78,6 @@ export default function LoginPage() {
       });
 
       const { token, userType } = response.data;
-      if (rememberMe) {
-        cookies.set("token", token, {
-          expires: rememberMe ? 7 : 1,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-        });
-      }
 
       if (userType === "customer") {
         toast.success("Login successful! Redirecting to customer dashboard...");
@@ -99,7 +92,7 @@ export default function LoginPage() {
       } else if (userType === "admin") {
         toast.success("Login successful! Redirecting to admin dashboard...");
         setTimeout(() => {
-          window.location.href = "/dashboard/admin";
+          window.location.href = "/admin";
         }, 2000);
       } else {
         setLoginError("Unknown user type. Please contact support.");

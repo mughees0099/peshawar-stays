@@ -21,10 +21,6 @@ import {
   Filter,
   Grid,
   List,
-  Wifi,
-  Car,
-  Coffee,
-  Waves,
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
@@ -60,6 +56,7 @@ interface Property {
       altText?: string;
     }>;
   }>;
+  isApproved: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,6 +73,8 @@ interface HotelData {
   type: string;
   description: string;
   availableRooms: number;
+  isApproved: string;
+  createdAt: Date;
 }
 
 const amenityIcons = {
@@ -131,6 +130,8 @@ export default function HotelsPage() {
       type: propertyType,
       description: property.description,
       availableRooms: totalAvailableRooms,
+      isApproved: property.isApproved,
+      createdAt: property.createdAt,
     };
   };
 
@@ -359,7 +360,11 @@ export default function HotelsPage() {
               <div>
                 <h1 className="text-2xl font-bold">Properties</h1>
                 <p className="text-muted-foreground">
-                  {filteredHotels.length} properties found
+                  {
+                    hotels.filter((hotel) => hotel.isApproved === "approved")
+                      .length
+                  }
+                  properties found
                 </p>
               </div>
 
@@ -407,107 +412,112 @@ export default function HotelsPage() {
                   : "space-y-7 "
               }
             >
-              {filteredHotels.map((hotel) => (
-                <div key={hotel.id}>
-                  <Link href={`/hotel/${hotel.id}`} className="my-8">
-                    <Card
-                      className={`group cursor-pointer hover:shadow-xl transition-all duration-300 ${
-                        viewMode === "list"
-                          ? "flex flex-row "
-                          : "transform hover:-translate-y-1"
-                      }`}
-                    >
-                      <div
-                        className={`relative overflow-hidden ${
-                          viewMode === "list"
-                            ? "w-64 flex-shrink-0"
-                            : "rounded-t-lg"
-                        }`}
-                      >
-                        <Image
-                          src={hotel.image || "/placeholder.svg"}
-                          alt={hotel.name}
-                          width={400}
-                          height={300}
-                          className={`object-cover group-hover:scale-105 transition-transform duration-300 h-48 w-full`}
-                        />
-                        <Badge className="absolute top-3 left-3 bg-white text-gray-900">
-                          {hotel.type}
-                        </Badge>
-                        {hotel.availableRooms > 0 && (
-                          <Badge className="absolute top-3 right-3 bg-green-500 text-white">
-                            {hotel.availableRooms} rooms available
-                          </Badge>
-                        )}
-                      </div>
-                      <CardContent
-                        className={`p-4 ${viewMode === "list" ? "flex-1" : ""}`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-lg truncate">
-                            {hotel.name}
-                          </h3>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="ml-1 text-sm font-medium">
-                              {hotel.rating > 0 ? hotel.rating : "New"}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-3 flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {hotel.location.length > 30
-                            ? `${hotel.location.slice(0, 30)}...`
-                            : hotel.location}
-                        </p>
-                        {viewMode === "list" && (
-                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {hotel.description}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {hotel.amenities.slice(0, 3).map((amenity) => {
-                            const Icon =
-                              amenityIcons[
-                                amenity as keyof typeof amenityIcons
-                              ];
-                            return (
-                              <Badge
-                                key={amenity}
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {Icon && <Icon className="h-3 w-3 mr-1" />}
-                                {amenity}
-                              </Badge>
-                            );
-                          })}
-                          {hotel.amenities.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{hotel.amenities.length - 3} more
+              {filteredHotels.map(
+                (hotel) =>
+                  hotel.isApproved === "approved" && (
+                    <div key={hotel.id}>
+                      <Link href={`/hotel/${hotel.id}`} className="my-8">
+                        <Card
+                          className={`group cursor-pointer hover:shadow-xl transition-all duration-300 ${
+                            viewMode === "list"
+                              ? "flex flex-row "
+                              : "transform hover:-translate-y-1"
+                          }`}
+                        >
+                          <div
+                            className={`relative overflow-hidden ${
+                              viewMode === "list"
+                                ? "w-64 flex-shrink-0"
+                                : "rounded-t-lg"
+                            }`}
+                          >
+                            <Image
+                              src={hotel.image || "/placeholder.svg"}
+                              alt={hotel.name}
+                              width={400}
+                              height={300}
+                              className={`object-cover group-hover:scale-105 transition-transform duration-300 h-48 w-full`}
+                            />
+                            <Badge className="absolute top-3 left-3 bg-white text-gray-900">
+                              {hotel.type}
                             </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-lg font-bold">
-                              PKR {hotel.price.toLocaleString()}
-                            </span>
-                            <span className="text-muted-foreground text-sm">
-                              {" "}
-                              / night
-                            </span>
+                            {hotel.availableRooms > 0 && (
+                              <Badge className="absolute top-3 right-3 bg-green-500 text-white">
+                                {hotel.availableRooms} rooms available
+                              </Badge>
+                            )}
                           </div>
-                          <span className="text-sm text-muted-foreground">
-                            {hotel.reviews}{" "}
-                            {hotel.reviews === 1 ? "review" : "reviews"}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </div>
-              ))}
+                          <CardContent
+                            className={`p-4 ${
+                              viewMode === "list" ? "flex-1" : ""
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-semibold text-lg truncate">
+                                {hotel.name}
+                              </h3>
+                              <div className="flex items-center">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                <span className="ml-1 text-sm font-medium">
+                                  {hotel.rating > 0 ? hotel.rating : "New"}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-muted-foreground text-sm mb-3 flex items-center">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {hotel.location.length > 30
+                                ? `${hotel.location.slice(0, 30)}...`
+                                : hotel.location}
+                            </p>
+                            {viewMode === "list" && (
+                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                                {hotel.description}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {hotel.amenities.slice(0, 3).map((amenity) => {
+                                const Icon =
+                                  amenityIcons[
+                                    amenity as keyof typeof amenityIcons
+                                  ];
+                                return (
+                                  <Badge
+                                    key={amenity}
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    {Icon && <Icon className="h-3 w-3 mr-1" />}
+                                    {amenity}
+                                  </Badge>
+                                );
+                              })}
+                              {hotel.amenities.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{hotel.amenities.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-lg font-bold">
+                                  PKR {hotel.price.toLocaleString()}
+                                </span>
+                                <span className="text-muted-foreground text-sm">
+                                  {" "}
+                                  / night
+                                </span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">
+                                {hotel.reviews}{" "}
+                                {hotel.reviews === 1 ? "review" : "reviews"}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </div>
+                  )
+              )}
             </div>
 
             {filteredHotels.length === 0 && !loading && (

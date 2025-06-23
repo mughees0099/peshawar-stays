@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
                   If you ever need help, just reply to this email. We're always here to assist.
                 </p>
                 <div style="margin: 30px 0; text-align: center;">
-                  <a href="https://peshawarstays.com/login" style="background-color: #FFD700; color: #111; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-weight: bold;">
+                  <a href="https://peshawar-stays.vercel.app/login" style="background-color: #FFD700; color: #111; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-weight: bold;">
                     Login Now
                   </a>
                 </div>

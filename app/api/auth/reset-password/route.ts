@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
                   If you didn’t request this change, please contact our support team immediately, or reset your password again to secure your account.
                 </p>
                 <div style="margin: 30px 0; text-align: center;">
-                  <a href="https://peshawarstays.com/login" style="background-color: #FFD700; color: #111; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-weight: bold;">
+                  <a href="https://peshawar-stays.vercel.app/login" style="background-color: #FFD700; color: #111; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-weight: bold;">
                     Login to Your Account
                   </a>
                 </div>

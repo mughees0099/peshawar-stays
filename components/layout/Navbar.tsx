@@ -81,7 +81,7 @@ export function Navbar() {
                       : currentUser.role === "customer"
                       ? "/dashboard/customer"
                       : currentUser.role === "admin"
-                      ? "/dashboard/admin"
+                      ? "/admin"
                       : "/"
                   }
                 >
@@ -95,7 +95,7 @@ export function Navbar() {
                         ? "/female-avator.avif"
                         : currentUser.gender === "other"
                         ? "/other-avatar.webp"
-                        : "/default-avatar.png"
+                        : "/default-avatar.jpg"
                     }
                     alt="Profile"
                     className="w-12 h-12 rounded-full mr-2"
@@ -175,19 +175,21 @@ export function Navbar() {
                         : currentUser.role === "customer"
                         ? "/dashboard/customer"
                         : currentUser.role === "admin"
-                        ? "/dashboard/admin"
+                        ? "/admin"
                         : "/"
                     }
                   >
                     <Image
                       src={
-                        currentUser.gender === "male"
+                        currentUser.imageUrl
+                          ? currentUser.imageUrl
+                          : currentUser.gender === "male"
                           ? "/male-avatar.jpg"
                           : currentUser.gender === "female"
                           ? "/female-avator.avif"
                           : currentUser.gender === "other"
                           ? "/other-avatar.webp"
-                          : "/default-avatar.png"
+                          : "/default-avatar.jpg"
                       }
                       alt="Profile"
                       className="w-12 h-12 rounded-full"

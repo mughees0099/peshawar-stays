@@ -22,6 +22,12 @@ const propertySchema = new mongoose.Schema(
       required: [true, "Price per night is required"],
       min: [0, "Price must be a positive number"],
     },
+    isApproved: {
+      type: String,
+      required: [true, "Approval status is required"],
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
 
     owner: {
       type: mongoose.Schema.Types.ObjectId,
