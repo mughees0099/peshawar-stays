@@ -562,15 +562,18 @@ export default function RegisterPage() {
               onValueChange={(value) => setUserType(value as any)}
               className="w-full"
             >
-              <TabsList
-                className={`grid w-full ${
-                  role === "host" ? "grid-cols-1" : "grid-cols-2"
-                }`}
-              >
-                {!(role === "host") && (
-                  <TabsTrigger value="customer">Customer</TabsTrigger>
+              <TabsList className={`grid w-full grid-cols-1`}>
+                {role === "host" ? (
+                  <TabsTrigger value="host" className="w-full">
+                    Host Registration
+                  </TabsTrigger>
+                ) : (
+                  <>
+                    <TabsTrigger value="customer" className="w-full">
+                      Registration
+                    </TabsTrigger>
+                  </>
                 )}
-                <TabsTrigger value="host">Host</TabsTrigger>
               </TabsList>
               <form onSubmit={HandleCustomerRegistration}>
                 <TabsContent value="customer" className="space-y-4 mt-6">

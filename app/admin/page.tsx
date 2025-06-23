@@ -340,6 +340,22 @@ export default function AdminDashboard() {
     .filter((b) => b.status === "confirmed" || b.status === "completed")
     .reduce((acc, curr) => acc + curr.totalAmount, 0);
 
+  const months = [
+    "Jan 2025",
+    "Feb 2025",
+    "Mar 2025",
+    "Apr 2025",
+    "May 2025",
+    "Jun 2025",
+    "Jul 2025",
+    "Aug 2025",
+    "Sep 2025",
+    "Oct 2025",
+    "Nov 2025",
+    "Dec 2025",
+  ];
+
+  // Step 1: Populate bookingsPerMonth with real booking data
   const bookingsPerMonth = {};
   bookings.forEach((b) => {
     const month = new Date(b.createdAt).toLocaleString("default", {
@@ -349,12 +365,11 @@ export default function AdminDashboard() {
     bookingsPerMonth[month] = (bookingsPerMonth[month] || 0) + 1;
   });
 
-  const bookingsChartData = Object.entries(bookingsPerMonth).map(
-    ([month, count]) => ({
-      month,
-      count,
-    })
-  );
+  // Step 2: Ensure all months are covered (even if count = 0)
+  const bookingsChartData = months.map((month) => ({
+    month,
+    count: bookingsPerMonth[month] || 0,
+  }));
 
   const revenuePerMonth = {};
   bookings

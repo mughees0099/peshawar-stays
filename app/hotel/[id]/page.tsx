@@ -1565,6 +1565,34 @@ export default function HotelDetailPage() {
                 </CardContent>
               </Card>
             </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-6"
+            >
+              <Card className="shadow-lg border-0">
+                <CardHeader>
+                  <CardTitle>Property Location</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="w-full h-72 rounded-lg overflow-hidden">
+                    <iframe
+                      title="Property Location"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(
+                        property.name + " " + property.address
+                      )}&output=embed`}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </div>

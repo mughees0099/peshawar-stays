@@ -7,9 +7,9 @@ import Link from "next/link";
 
 const teamMembers = [
   {
-    name: "Ahmad Malik",
+    name: "Muhammad Idrees",
     role: "Founder & CEO",
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/founder1.jpg?height=300&width=300",
     description:
       "Passionate about bringing world-class hospitality to Peshawar",
   },
@@ -20,10 +20,10 @@ const teamMembers = [
     description: "Ensuring every guest experience exceeds expectations",
   },
   {
-    name: "Hassan Ali",
-    role: "Technology Director",
+    name: "Fatim Khan",
+    role: "Head of Operations",
     image: "/placeholder.svg?height=300&width=300",
-    description: "Building the future of hospitality technology in Pakistan",
+    description: "Ensuring every guest experience exceeds expectations",
   },
 ];
 
@@ -54,11 +54,12 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-luxury-navy via-luxury-charcoal to-primary py-20 md:py-32">
+      <section className="relative h-screen bg-black py-20 md:py-32">
         <div className="absolute inset-0">
           <Image
-            src="/placeholder.svg?height=800&width=1600"
+            src="/Bala_Hisar_Fort.jpg?height=800&width=1600"
             alt="About PeshawarStays"
+            priority
             fill
             className="object-cover opacity-20"
           />
@@ -117,7 +118,7 @@ export default function AboutPage() {
             </div>
             <div className="relative">
               <Image
-                src="/placeholder.svg?height=600&width=800"
+                src="/about-2.jpg?height=600&width=800"
                 alt="PeshawarStays Story"
                 width={800}
                 height={600}
@@ -195,7 +196,8 @@ export default function AboutPage() {
                     alt={member.name}
                     width={300}
                     height={300}
-                    className="w-full h-80 object-cover"
+                    priority
+                    className="w-full h-80 object-fill"
                   />
                 </div>
                 <CardContent className="p-6">

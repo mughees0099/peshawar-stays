@@ -18,61 +18,13 @@ import {
   Clock,
   CheckCircle,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCurrentUser } from "@/hooks/currentUser";
-
-const featuredHotels = [
-  {
-    id: 1,
-    name: "Pearl Continental Peshawar",
-    location: "University Town, Peshawar",
-    price: 15000,
-    rating: 4.8,
-    reviews: 324,
-    image: "/placeholder.svg?height=400&width=600",
-    amenities: ["Wifi", "Parking", "Restaurant", "Pool"],
-    type: "Luxury Hotel",
-    badge: "Premium",
-  },
-  {
-    id: 2,
-    name: "Shelton's Rezidor",
-    location: "Saddar, Peshawar",
-    price: 12000,
-    rating: 4.6,
-    reviews: 189,
-    image: "/placeholder.svg?height=400&width=600",
-    amenities: ["Wifi", "Parking", "Restaurant"],
-    type: "Business Hotel",
-    badge: "Business",
-  },
-  {
-    id: 3,
-    name: "Royal Palace Guest House",
-    location: "Hayatabad, Peshawar",
-    price: 8000,
-    rating: 4.4,
-    reviews: 156,
-    image: "/placeholder.svg?height=400&width=600",
-    amenities: ["Wifi", "Parking", "Breakfast"],
-    type: "Guest House",
-    badge: "Boutique",
-  },
-  {
-    id: 4,
-    name: "Heritage Luxury Suites",
-    location: "Cantonment, Peshawar",
-    price: 18000,
-    rating: 4.9,
-    reviews: 98,
-    image: "/placeholder.svg?height=400&width=600",
-    amenities: ["Wifi", "Restaurant", "Spa"],
-    type: "Luxury Suite",
-    badge: "Exclusive",
-  },
-];
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const testimonials = [
   {
@@ -125,15 +77,6 @@ const howItWorks = [
   },
 ];
 
-const amenityIcons = {
-  Wifi: Wifi,
-  Parking: Car,
-  Restaurant: Coffee,
-  Pool: Waves,
-  Breakfast: Coffee,
-  Spa: Star,
-};
-
 // Animation variants
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
@@ -155,6 +98,26 @@ const scaleOnHover = {
 };
 
 export default function HomePage() {
+  const [featuredHotels, setFeaturedHotels] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchFeaturedHotels() {
+      try {
+        setLoading(true);
+        const response = await axios.get("/api/Property/properties");
+        const data = response.data.filter(
+          (hotel) => hotel.isApproved === "approved"
+        );
+        setFeaturedHotels(data.slice(0, 4));
+      } catch (error) {
+        console.error("Error fetching featured hotels:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFeaturedHotels();
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -167,7 +130,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0">
           <Image
-            src="/bg-main.jpg?height=800&width=1600"
+            src="/main-bg.avif?height=800&width=1600"
             alt="Luxury Hotel Background"
             fill
             className="object-cover opacity-30"
@@ -213,94 +176,7 @@ export default function HomePage() {
             >
               <Card className="max-w-5xl mx-auto shadow-2xl border-0  bg-transparent backdrop-blur-sm">
                 <CardContent className="p-8">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {/* <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="relative"
-                    >
-                      <MapPin className="absolute left-4 top-4 h-5 w-5 text-luxury-gold" />
-                      <Input
-                        placeholder="Where in Peshawar?"
-                        className="pl-12 h-14 text-lg border-2 focus:border-luxury-gold transition-colors"
-                        defaultValue="Peshawar, Pakistan"
-                        disabled={true}
-                      />
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="relative"
-                    >
-                      <CalendarIcon className="absolute left-4 top-4 h-5 w-5 text-luxury-gold z-10" />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="pl-12 h-14 text-lg border-2 hover:border-luxury-gold focus:border-luxury-gold w-full justify-start text-left font-normal"
-                          >
-                            {checkIn
-                              ? format(checkIn, "MMM dd, yyyy")
-                              : "Check-in"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={checkIn}
-                            onSelect={setCheckIn}
-                            disablePastDates={true}
-                            numberOfMonths={1}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="relative"
-                    >
-                      <CalendarIcon className="absolute left-4 top-4 h-5 w-5 text-luxury-gold z-10" />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="pl-12 h-14 text-lg border-2 hover:border-luxury-gold focus:border-luxury-gold w-full justify-start text-left font-normal"
-                          >
-                            {checkOut
-                              ? format(checkOut, "MMM dd, yyyy")
-                              : "Check-out"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={checkOut}
-                            onSelect={setCheckOut}
-                            disablePastDates={true}
-                            disabled={checkIn ? { before: checkIn } : undefined}
-                            numberOfMonths={1}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="relative"
-                    >
-                      <Users className="absolute left-4 top-4 h-5 w-5 text-luxury-gold" />
-                      <Input
-                        placeholder="Guests"
-                        className="pl-12 h-14 text-lg border-2 focus:border-luxury-gold transition-colors"
-                        value={`${guests} guests`}
-                        onChange={(e) =>
-                          setGuests(e.target.value.replace(" guests", ""))
-                        }
-                      />
-                    </motion.div> */}
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6"></div>
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -440,126 +316,138 @@ export default function HomePage() {
               boutique guest houses
             </p>
           </motion.div>
-
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {featuredHotels.map((hotel, index) => (
-              <motion.div
-                key={hotel.id}
-                variants={fadeInUp}
-                whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              >
-                <Link href={`/hotel/${hotel.id}`}>
-                  <Card className="group cursor-pointer border-0 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-white">
-                    <div className="relative overflow-hidden">
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.6 }}
-                      >
-                        <Image
-                          src={hotel.image || "/placeholder.svg"}
-                          alt={hotel.name}
-                          width={400}
-                          height={300}
-                          className="w-full h-64 object-cover"
+          {loading ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-10 w-10 animate-spin text-luxury-gold mx-auto mb-4" />
+              <p className="text-lg text-muted-foreground">Loading...</p>
+            </div>
+          ) : (
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            >
+              {featuredHotels.map((hotel, index) => (
+                <motion.div
+                  key={hotel._id}
+                  variants={fadeInUp}
+                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                >
+                  <Link href={`/hotel/${hotel._id}`}>
+                    <Card className="group cursor-pointer border-0 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-white">
+                      <div className="relative overflow-hidden">
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <Image
+                            src={hotel.images[0].url || "/placeholder.svg"}
+                            alt={hotel.name}
+                            width={400}
+                            height={300}
+                            className="w-full h-64 object-cover"
+                          />
+                        </motion.div>
+                        <motion.div
+                          initial={{ x: -100, opacity: 0 }}
+                          whileInView={{ x: 0, opacity: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                          viewport={{ once: true }}
+                        >
+                          <Badge className="absolute top-4 left-4 bg-luxury-gold text-primary font-medium shadow-lg">
+                            {hotel.pricePerNight >= 10000
+                              ? "Luxury"
+                              : hotel.pricePerNight >= 20000
+                              ? "Premium"
+                              : "Standard"}
+                          </Badge>
+                        </motion.div>
+                        <motion.div
+                          initial={{ x: 100, opacity: 0 }}
+                          whileInView={{ x: 0, opacity: 1 }}
+                          transition={{ delay: index * 0.1 + 0.2 }}
+                          viewport={{ once: true }}
+                          className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg"
+                        >
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 fill-luxury-gold text-luxury-gold" />
+                            <span className="ml-1 text-sm font-bold text-primary">
+                              {hotel.reviews.length > 0
+                                ? (
+                                    hotel.reviews
+                                      .map((review) => review.rating)
+                                      .reduce((a, b) => a + b, 0) /
+                                    hotel.reviews.length
+                                  ).toFixed(1)
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
+                          className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
                         />
-                      </motion.div>
-                      <motion.div
-                        initial={{ x: -100, opacity: 0 }}
-                        whileInView={{ x: 0, opacity: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        viewport={{ once: true }}
-                      >
-                        <Badge className="absolute top-4 left-4 bg-luxury-gold text-primary font-medium shadow-lg">
-                          {hotel.badge}
-                        </Badge>
-                      </motion.div>
-                      <motion.div
-                        initial={{ x: 100, opacity: 0 }}
-                        whileInView={{ x: 0, opacity: 1 }}
-                        transition={{ delay: index * 0.1 + 0.2 }}
-                        viewport={{ once: true }}
-                        className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg"
-                      >
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 fill-luxury-gold text-luxury-gold" />
-                          <span className="ml-1 text-sm font-bold text-primary">
-                            {hotel.rating}
-                          </span>
-                        </div>
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                        className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <motion.h3
-                        className="font-bold text-xl mb-2 text-primary group-hover:text-luxury-gold transition-colors"
-                        whileHover={{ x: 5 }}
-                      >
-                        {hotel.name}
-                      </motion.h3>
-                      <p className="text-muted-foreground text-sm mb-4 flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-luxury-gold" />
-                        {hotel.location}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {hotel.amenities
-                          .slice(0, 3)
-                          .map((amenity, amenityIndex) => {
-                            const Icon =
-                              amenityIcons[
-                                amenity as keyof typeof amenityIcons
-                              ];
-                            return (
-                              <motion.div
-                                key={amenity}
-                                initial={{ scale: 0 }}
-                                whileInView={{ scale: 1 }}
-                                transition={{ delay: amenityIndex * 0.1 }}
-                                viewport={{ once: true }}
-                              >
-                                <Badge
-                                  variant="secondary"
-                                  className="text-xs bg-luxury-cream text-primary"
-                                >
-                                  {Icon && <Icon className="h-3 w-3 mr-1" />}
-                                  {amenity}
-                                </Badge>
-                              </motion.div>
-                            );
-                          })}
                       </div>
-                      <motion.div
-                        className="flex items-center justify-between"
-                        whileHover={{ scale: 1.02 }}
-                      >
-                        <div>
-                          <span className="text-2xl font-bold text-primary">
-                            PKR {hotel.price.toLocaleString()}
-                          </span>
-                          <span className="text-muted-foreground text-sm">
-                            {" "}
-                            / night
-                          </span>
+                      <CardContent className="p-6">
+                        <motion.h3
+                          className="font-bold text-xl mb-2 text-primary group-hover:text-luxury-gold transition-colors"
+                          whileHover={{ x: 5 }}
+                        >
+                          {hotel.name}
+                        </motion.h3>
+                        <p className="text-muted-foreground text-sm mb-4 flex items-center">
+                          <MapPin className="h-4 w-4 mr-2 text-luxury-gold" />
+                          {hotel.address}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {hotel.amenities
+                            .slice(0, 3)
+                            .map((amenity, amenityIndex) => {
+                              return (
+                                <motion.div
+                                  key={amenity}
+                                  initial={{ scale: 0 }}
+                                  whileInView={{ scale: 1 }}
+                                  transition={{ delay: amenityIndex * 0.1 }}
+                                  viewport={{ once: true }}
+                                >
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs bg-luxury-cream text-primary"
+                                  >
+                                    {amenity}
+                                  </Badge>
+                                </motion.div>
+                              );
+                            })}
                         </div>
-                        <span className="text-sm text-muted-foreground">
-                          {hotel.reviews} reviews
-                        </span>
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+                        <motion.div
+                          className="flex items-center justify-between"
+                          whileHover={{ scale: 1.02 }}
+                        >
+                          <div>
+                            <span className="text-2xl font-bold text-primary">
+                              PKR {hotel.pricePerNight.toLocaleString()}
+                            </span>
+                            <span className="text-muted-foreground text-sm">
+                              {" "}
+                              / night
+                            </span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {hotel.reviews.length} reviews
+                          </span>
+                        </motion.div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}

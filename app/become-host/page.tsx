@@ -1,37 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DollarSign,
-  Users,
-  Shield,
-  Clock,
-  ArrowRight,
-  Upload,
-} from "lucide-react";
+
+import { DollarSign, Users, Shield, Clock, ArrowRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 const benefits = [
   {
@@ -77,49 +52,14 @@ const steps = [
   },
 ];
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 60 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: "easeOut" },
-};
-
 export default function BecomeHostPage() {
-  // const [formStep, setFormStep] = useState(1);
-  // const [formData, setFormData] = useState({
-  //   firstName: "",
-  //   lastName: "",
-  //   email: "",
-  //   phone: "",
-  //   propertyName: "",
-  //   propertyType: "",
-  //   address: "",
-  //   description: "",
-  //   bankDetails: "",
-  // });
-
-  // const handleNext = () => {
-  //   if (formStep < 3) setFormStep(formStep + 1);
-  // };
-
-  // const handlePrev = () => {
-  //   if (formStep > 1) setFormStep(formStep - 1);
-  // };
-
-  // const handleSubmit = () => {
-  //   // Simulate form submission
-  //   alert(
-  //     "Application submitted successfully! We'll review and contact you within 24 hours."
-  //   );
-  //   window.location.href = "/dashboard/host";
-  // };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-luxury-navy via-luxury-charcoal to-primary py-20 md:py-32 overflow-hidden">
+      <section className="relative bg-black h-screen py-20 md:py-32 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/placeholder.svg?height=800&width=1600"
+            src="/beecome-host.webp?height=800&width=1600"
             alt="Become a Host"
             fill
             className="object-cover opacity-20"
